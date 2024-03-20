@@ -1,0 +1,10 @@
+astroid == 2.3.3
+pylint == 2.3.1
+pytest >= 6.2.0
+pytest-cov >= 2.4.0
+pytest-localserver >= 0.4.1
+pytest-asyncio >= 0.16.0
+pytest-mock >= 3.6.1
+aiohttp >= 3.9.3
+pyrebase4 == 4.7.1
+setuptools >= 69.2.0
