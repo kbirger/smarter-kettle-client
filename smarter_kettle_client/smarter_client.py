@@ -1,9 +1,10 @@
+
+from __future__ import annotations
 import pyrebase
 
-from .model.login_session import LoginSession
-
-
+from .models import LoginSession
 from ._consts import API_KEY
+from pyrebase.pyrebase import Stream
 
 
 class SmarterClient:
@@ -39,5 +40,17 @@ class SmarterClient:
         database = self.app.database()
         return database.child('devices').child(device_id).get(self.token).val()
 
+    def get_status(self, device_id: str):
+        database = self.app.database()
+        return database.child('devices').child(device_id).child('status').get(self.token).val()
+
     def get_db(self):
         return self.app.database()
+
+    def send_command(self, device_id: str, command: str, data: dict):
+        database = self.app.database()
+        return database.child('devices').child(device_id).child('commands').child(command).push(data, self.token)
+
+    def watch_device_attribute(self, device_id: str, callback) -> Stream:
+        database = self.app.database()
+        return database.child('devices').child(device_id).stream(callback, self.token)
