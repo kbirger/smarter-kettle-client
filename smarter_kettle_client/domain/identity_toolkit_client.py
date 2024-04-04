@@ -1,5 +1,5 @@
 import aiohttp
-from ._consts import API_KEY
+from .._consts import API_KEY
 
 
 class IdentityToolkitClient(object):
