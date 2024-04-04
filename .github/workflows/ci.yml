@@ -4,13 +4,14 @@ on:
   push:
     branches:
       - main
+      - dev
     tags:
-      - '**'
+      - "**"
   pull_request: {}
 
 env:
   COLUMNS: 150
-  PDM_DEPS: 'urllib3<2'
+  PDM_DEPS: "urllib3<2"
   FINDPYTHON_GET_VERSION_TIMEOUT: 30
 
 jobs:
@@ -20,7 +21,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python-version: ['3.8', '3.9', '3.10', '3.11', '3.12']
+        python-version: ["3.8", "3.9", "3.10", "3.11", "3.12"]
     steps:
       - uses: actions/checkout@v4
 
@@ -44,34 +45,32 @@ jobs:
   docs-build:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-    - uses: pdm-project/setup-pdm@v4
-      with:
-        # cloudflare pages build containers run 3.8, hence using it here
-        python-version: '3.8'
+      - uses: pdm-project/setup-pdm@v4
+        with:
+          # cloudflare pages build containers run 3.8, hence using it here
+          python-version: "3.8"
 
-    - name: install dependencies
-      # Unlike the docs build, we don't use mkdocs_material-insiders
-      # Because the secret for accessing the library is not accessible from forks, but we still want to run
-      # this job on public CI runs.
-      run: |
-        pdm venv create --with-pip --force $PYTHON
-        pdm install -G docs
+      - name: install dependencies
+        # Unlike the docs build, we don't use mkdocs_material-insiders
+        # Because the secret for accessing the library is not accessible from forks, but we still want to run
+        # this job on public CI runs.
+        run: |
+          pdm venv create --with-pip --force $PYTHON
+          pdm install -G docs
 
-    - run: pdm run python -c 'import docs.plugins.main'
+      - run: pdm run python -c 'import docs.plugins.main'
 
-    # Adding local symlinks gets nice source locations like
-    #   pydantic_core/core_schema.py
-    # instead of
-    #   .venv/lib/python3.10/site-packages/pydantic_core/core_schema.py
-    - name: prepare shortcuts for extra modules
-      run: |
-        ln -s .venv/lib/python*/site-packages/smarter_kettle_client smarter_kettle_client
+      # Adding local symlinks gets nice source locations like
+      #   pydantic_core/core_schema.py
+      # instead of
+      #   .venv/lib/python3.10/site-packages/pydantic_core/core_schema.py
+      - name: prepare shortcuts for extra modules
+        run: |
+          ln -s .venv/lib/python*/site-packages/smarter_kettle_client smarter_kettle_client
 
-    - run: pdm run mkdocs build
-
-  
+      - run: pdm run mkdocs build
 
   test:
     name: test ${{ matrix.os }} / ${{ matrix.python-version }}
@@ -79,15 +78,15 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu, macos, windows]
-        python-version: ['3.8', '3.9', '3.10', '3.11', '3.12']
+        python-version: ["3.8", "3.9", "3.10", "3.11", "3.12"]
         include:
           # no pydantic-core binaries for pypy on windows, so tests take absolute ages
           # macos tests with pypy take ages (>10mins) since pypy is very slow
           # so we only test pypy on ubuntu
           - os: ubuntu
-            python-version: 'pypy3.9'
+            python-version: "pypy3.9"
           - os: ubuntu
-            python-version: 'pypy3.10'
+            python-version: "pypy3.10"
 
     env:
       OS: ${{ matrix.os }}
@@ -96,47 +95,47 @@ jobs:
     runs-on: ${{ matrix.os }}-latest
 
     steps:
-    - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-    - uses: pdm-project/setup-pdm@v4
-      with:
-        python-version: ${{ matrix.python-version }}
-        cache: true
-        allow-python-prereleases: true
+      - uses: pdm-project/setup-pdm@v4
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: true
+          allow-python-prereleases: true
 
-    - name: install deps
-      run: |
-        pdm venv create --with-pip --force $PYTHON
-        pdm install -G testing -G email
+      - name: install deps
+        run: |
+          pdm venv create --with-pip --force $PYTHON
+          pdm install -G testing -G email
 
-    - run: pdm info && pdm list
+      - run: pdm info && pdm list
 
-    - run: 'pdm run python -c "import pydantic.version; print(pydantic.version.version_info())"'
+      - run: 'pdm run python -c "import pydantic.version; print(pydantic.version.version_info())"'
 
-    - run: mkdir coverage
+      - run: mkdir coverage
 
-    - name: test without deps
-      # speed up by skipping this step on pypy
-      if: "!startsWith(matrix.python-version, 'pypy')"
-      run: make test
-      env:
-        COVERAGE_FILE: coverage/.coverage.${{ runner.os }}-py${{ matrix.python-version }}-without-deps
-        CONTEXT: ${{ runner.os }}-py${{ matrix.python-version }}-without-deps
+      - name: test without deps
+        # speed up by skipping this step on pypy
+        if: "!startsWith(matrix.python-version, 'pypy')"
+        run: make test
+        env:
+          COVERAGE_FILE: coverage/.coverage.${{ runner.os }}-py${{ matrix.python-version }}-without-deps
+          CONTEXT: ${{ runner.os }}-py${{ matrix.python-version }}-without-deps
 
-    - name: install extra deps
-      run: pdm install -G testing-extra -G email
+      - name: install extra deps
+        run: pdm install -G testing-extra -G email
 
-    - name: test with deps
-      run: make test
-      env:
-        COVERAGE_FILE: coverage/.coverage.${{ runner.os }}-py${{ matrix.python-version }}-with-deps
-        CONTEXT: ${{ runner.os }}-py${{ matrix.python-version }}-with-deps
+      - name: test with deps
+        run: make test
+        env:
+          COVERAGE_FILE: coverage/.coverage.${{ runner.os }}-py${{ matrix.python-version }}-with-deps
+          CONTEXT: ${{ runner.os }}-py${{ matrix.python-version }}-with-deps
 
-    - name: store coverage files
-      uses: actions/upload-artifact@v4
-      with:
-        name: coverage-${{ matrix.os }}-${{ matrix.python-version }}
-        path: coverage
+      - name: store coverage files
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-${{ matrix.os }}-${{ matrix.python-version }}
+          path: coverage
 
   test-fastapi:
     # If some tests start failing due to out-of-date schemas/validation errors/etc.,
@@ -149,7 +148,7 @@ jobs:
       - name: set up python
         uses: actions/setup-python@v5
         with:
-          python-version: '3.12'
+          python-version: "3.12"
 
       - name: test
         run: make test-fastapi
@@ -162,7 +161,7 @@ jobs:
 
       - uses: pdm-project/setup-pdm@v4
         with:
-          python-version: '3.12'
+          python-version: "3.12"
           cache: true
 
       - name: install deps
@@ -190,68 +189,68 @@ jobs:
       matrix:
         # test recent mypy versions on 3.10 and mypy 1.0.1 on all supported python versions
         # if you change the value in the lockfile add the old value to this list
-        mypy-version: ['1.0.1', 'lockfile', '1.2.0', '1.4.1', '1.5.1']
-        python-version: ['3.10']
+        mypy-version: ["1.0.1", "lockfile", "1.2.0", "1.4.1", "1.5.1"]
+        python-version: ["3.10"]
         include:
-          - mypy-version: 'lockfile'
-            python-version: '3.8'
-          - mypy-version: 'lockfile'
-            python-version: '3.9'
-          - mypy-version: 'lockfile'
-            python-version: '3.11'
+          - mypy-version: "lockfile"
+            python-version: "3.8"
+          - mypy-version: "lockfile"
+            python-version: "3.9"
+          - mypy-version: "lockfile"
+            python-version: "3.11"
           # TODO: Once Python 3.7 is removed, and mypy is bumped on the lockfile, we can add 'lockfile' again.
-          - mypy-version: '1.5.1'
-            python-version: '3.12'
+          - mypy-version: "1.5.1"
+            python-version: "3.12"
 
     steps:
-    - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-    - uses: pdm-project/setup-pdm@v4
-      with:
-        python-version: ${{ matrix.python-version }}
-        cache: true
-        allow-python-prereleases: true
+      - uses: pdm-project/setup-pdm@v4
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: true
+          allow-python-prereleases: true
 
-    - name: install deps
-      run: |
-        pdm venv create --with-pip --force $PYTHON
-        pdm install -G testing -G mypy
+      - name: install deps
+        run: |
+          pdm venv create --with-pip --force $PYTHON
+          pdm install -G testing -G mypy
 
-    - name: install mypy
-      if: steps.cache.outputs.cache-hit != 'true'
-      run: |
-        if [ ${{ matrix.mypy-version }} != 'lockfile' ]; then
-          pdm remove -G linting mypy && pdm remove -G mypy mypy && pdm add mypy==${{ matrix.mypy-version }}
-        fi
-        pdm list
+      - name: install mypy
+        if: steps.cache.outputs.cache-hit != 'true'
+        run: |
+          if [ ${{ matrix.mypy-version }} != 'lockfile' ]; then
+            pdm remove -G linting mypy && pdm remove -G mypy mypy && pdm add mypy==${{ matrix.mypy-version }}
+          fi
+          pdm list
 
-    - run: mkdir coverage
+      - run: mkdir coverage
 
-    - name: run mypy tests
-      run: pdm run coverage run -m pytest tests/mypy --test-mypy
-      env:
-        COVERAGE_FILE: coverage/.coverage.linux-py${{ matrix.python-version }}-mypy${{ matrix.mypy-version }}
-        CONTEXT: linux-py${{ matrix.python-version }}-mypy${{ matrix.mypy-version }}
+      - name: run mypy tests
+        run: pdm run coverage run -m pytest tests/mypy --test-mypy
+        env:
+          COVERAGE_FILE: coverage/.coverage.linux-py${{ matrix.python-version }}-mypy${{ matrix.mypy-version }}
+          CONTEXT: linux-py${{ matrix.python-version }}-mypy${{ matrix.mypy-version }}
 
-    - name: install node for pyright
-      uses: actions/setup-node@v4
-      with:
-        node-version: '18'
+      - name: install node for pyright
+        uses: actions/setup-node@v4
+        with:
+          node-version: "18"
 
-    - name: install pyright
-      run: npm install -g pyright@1.1.345  # try to keep this in sync with .pre-commit-config.yaml
+      - name: install pyright
+        run: npm install -g pyright@1.1.345 # try to keep this in sync with .pre-commit-config.yaml
 
-    - name: run pyright tests
-      run: make test-pyright
-      env:
-        COVERAGE_FILE: coverage/.coverage.linux-py${{ matrix.python-version }}-pyright
-        CONTEXT: linux-py${{ matrix.python-version }}-pyright
+      - name: run pyright tests
+        run: make test-pyright
+        env:
+          COVERAGE_FILE: coverage/.coverage.linux-py${{ matrix.python-version }}-pyright
+          CONTEXT: linux-py${{ matrix.python-version }}-pyright
 
-    - name: store coverage files
-      uses: actions/upload-artifact@v4
-      with:
-        name: coverage-${{ matrix.os }}-${{ matrix.python-version }}-mypy${{ matrix.mypy-version }}
-        path: coverage
+      - name: store coverage files
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-${{ matrix.os }}-${{ matrix.python-version }}-mypy${{ matrix.mypy-version }}
+          path: coverage
 
   coverage-combine:
     needs: [test, test-mypy]
@@ -262,7 +261,7 @@ jobs:
 
       - uses: actions/setup-python@v5
         with:
-          python-version: '3.12'
+          python-version: "3.12"
 
       - name: get coverage files
         uses: actions/download-artifact@v4
@@ -291,37 +290,36 @@ jobs:
       fail-fast: false
       matrix:
         # test the oldest supported version and main
-        typing-extensions-version: ['4.6.1', 'main']
-        python-version: ['3.8', '3.9', '3.10', '3.11', '3.12']
+        typing-extensions-version: ["4.6.1", "main"]
+        python-version: ["3.8", "3.9", "3.10", "3.11", "3.12"]
 
     steps:
-    - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-    - uses: pdm-project/setup-pdm@v4
-      with:
-        python-version: ${{ matrix.python-version }}
-        cache: true
-        allow-python-prereleases: true
+      - uses: pdm-project/setup-pdm@v4
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: true
+          allow-python-prereleases: true
 
-    - name: install deps
-      run: |
-        pdm venv create --with-pip --force $PYTHON
-        pdm install -G testing -G email
+      - name: install deps
+        run: |
+          pdm venv create --with-pip --force $PYTHON
+          pdm install -G testing -G email
 
-    - name: install typing-extensions
-      run: |
-        if [ ${{ matrix.typing-extensions-version }} == 'main' ]; then
-          pdm remove typing-extensions && pdm add 'typing-extensions @ git+https://github.com/python/typing_extensions.git'
-        else
-          pdm remove typing-extensions && pdm add 'typing-extensions==${{ matrix.typing-extensions-version }}'
-        fi
-        pdm list
-    - name: test
-      run: make test
+      - name: install typing-extensions
+        run: |
+          if [ ${{ matrix.typing-extensions-version }} == 'main' ]; then
+            pdm remove typing-extensions && pdm add 'typing-extensions @ git+https://github.com/python/typing_extensions.git'
+          else
+            pdm remove typing-extensions && pdm add 'typing-extensions==${{ matrix.typing-extensions-version }}'
+          fi
+          pdm list
+      - name: test
+        run: make test
 
   # https://github.com/marketplace/actions/alls-green
-  check:  # This job does nothing and is only used for the branch protection
-
+  check: # This job does nothing and is only used for the branch protection
     if: always()
 
     outputs:
@@ -363,7 +361,7 @@ jobs:
       - name: set up python
         uses: actions/setup-python@v5
         with:
-          python-version: '3.12'
+          python-version: "3.12"
 
       - name: install
         run: pip install -U build
@@ -389,7 +387,7 @@ jobs:
     steps:
       - uses: actions/setup-python@v5
         with:
-          python-version: '3.12'
+          python-version: "3.12"
       - name: Install dependencies
         run: pip install tweepy==4.14.0
       - name: Send tweet
