@@ -31,13 +31,13 @@ jobs:
           cache: true
           allow-python-prereleases: true
 
-      - name: Python Linter
-        uses: sunnysid3up/python-linter@master
-        with:
-          source: "smarter_kettle_client"
-          mypy-options: "--ignore-missing-imports --show-error-codes"
-          pylint-options: "--rcfile=.pylintrc"
-
+      # - name: Python Linter
+        # uses: sunnysid3up/python-linter@master
+        # with:
+          # source: "smarter_kettle_client"
+          # mypy-options: "--ignore-missing-imports --show-error-codes"
+          # pylint-options: "--rcfile=.pylintrc"
+      - run: pdm run -v pylint --rcfile .pylintrc smarter_kettle_client
       # - uses: pre-commit/action@v3.0.1
       #   with:
       #     extra_args: --all-files --verbose
