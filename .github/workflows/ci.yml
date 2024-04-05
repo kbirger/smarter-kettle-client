@@ -1,0 +1,277 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+      - dev
+    tags:
+      - "**"
+  pull_request: {}
+
+env:
+  COLUMNS: 150
+  PDM_DEPS: "urllib3<2"
+  FINDPYTHON_GET_VERSION_TIMEOUT: 30
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    name: lint ${{ matrix.python-version }}
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.12"]
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pdm-project/setup-pdm@v4
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: true
+          allow-python-prereleases: true
+
+      # - name: Python Linter
+        # uses: sunnysid3up/python-linter@master
+        # with:
+          # source: "smarter_kettle_client"
+          # mypy-options: "--ignore-missing-imports --show-error-codes"
+          # pylint-options: "--rcfile=.pylintrc"
+      - run: pdm run -v pylint --rcfile .pylintrc smarter_kettle_client
+      # - uses: pre-commit/action@v3.0.1
+      #   with:
+      #     extra_args: --all-files --verbose
+      #   env:
+      #     SKIP: no-commit-to-branch
+
+  # docs-build:
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - uses: actions/checkout@v4
+
+  #     - uses: pdm-project/setup-pdm@v4
+  #       with:
+  #         # cloudflare pages build containers run 3.8, hence using it here
+  #         python-version: "3.8"
+
+  #     - name: install dependencies
+  #       # Unlike the docs build, we don't use mkdocs_material-insiders
+  #       # Because the secret for accessing the library is not accessible from forks, but we still want to run
+  #       # this job on public CI runs.
+  #       run: |
+  #         pdm venv create --with-pip --force $PYTHON
+  #         pdm install -G docs
+
+  #     - run: pdm run python -c 'import docs.plugins.main'
+
+  #     - name: prepare shortcuts for extra modules
+  #       run: |
+  #         ln -s .venv/lib/python*/site-packages/smarter_kettle_client smarter_kettle_client
+
+  #     - run: pdm run mkdocs build
+
+  test:
+    name: test ${{ matrix.os }} / ${{ matrix.python-version }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu]
+        python-version: ["3.12"]
+    env:
+      OS: ${{ matrix.os }}
+      DEPS: yes
+
+    runs-on: ${{ matrix.os }}-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pdm-project/setup-pdm@v4
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: true
+          allow-python-prereleases: true
+
+      - name: install deps
+        run: |
+          pdm venv create --with-pip --force $PYTHON
+          pdm install -G testing
+
+      - run: pdm info && pdm list
+
+      - run: 'pdm run python -c "import smarter_kettle_client.version; print(smarter_kettle_client.version.version_info())"'
+
+      - run: mkdir coverage
+
+      - run: pdm run -v pytest -v  --doctest-modules --junitxml=coverage/test-results.xml --cov --cov-report=xml --cov-report=html
+
+      - name: store coverage files
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-${{ matrix.os }}-${{ matrix.python-version }}
+          path: coverage
+      - name: Store coverage html
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-html
+          path: htmlcov
+
+  # test-mypy:
+  #   name: mypy ${{ matrix.mypy-version }} / ${{ matrix.python-version }}
+  #   runs-on: ubuntu-latest
+  #   strategy:
+  #     fail-fast: false
+  #     matrix:
+  #       # test recent mypy versions on 3.10 and mypy 1.0.1 on all supported python versions
+  #       # if you change the value in the lockfile add the old value to this list
+  #       mypy-version: ["1.0.1", "lockfile", "1.2.0", "1.4.1", "1.5.1"]
+  #       python-version: ["3.10"]
+  #       include:
+  #         - mypy-version: "lockfile"
+  #           python-version: "3.8"
+  #         - mypy-version: "lockfile"
+  #           python-version: "3.9"
+  #         - mypy-version: "lockfile"
+  #           python-version: "3.11"
+  #         # TODO: Once Python 3.7 is removed, and mypy is bumped on the lockfile, we can add 'lockfile' again.
+  #         - mypy-version: "1.5.1"
+  #           python-version: "3.12"
+
+  #   steps:
+  #     - uses: actions/checkout@v4
+
+  #     - uses: pdm-project/setup-pdm@v4
+  #       with:
+  #         python-version: ${{ matrix.python-version }}
+  #         cache: true
+  #         allow-python-prereleases: true
+
+  #     - name: install deps
+  #       run: |
+  #         pdm venv create --with-pip --force $PYTHON
+  #         pdm install -G mypy
+
+  #     - name: install mypy
+  #       if: steps.cache.outputs.cache-hit != 'true'
+  #       run: |
+  #         if [ ${{ matrix.mypy-version }} != 'lockfile' ]; then
+  #           pdm remove -G linting mypy && pdm remove -G mypy mypy && pdm add mypy==${{ matrix.mypy-version }}
+  #         fi
+  #         pdm list
+
+  #     - run: mkdir coverage
+
+  #     - name: run mypy tests
+  #       run: pdm run coverage run -m pytest tests/mypy --test-mypy
+  #       env:
+  #         COVERAGE_FILE: coverage/.coverage.linux-py${{ matrix.python-version }}-mypy${{ matrix.mypy-version }}
+  #         CONTEXT: linux-py${{ matrix.python-version }}-mypy${{ matrix.mypy-version }}
+
+  #     - name: install node for pyright
+  #       uses: actions/setup-node@v4
+  #       with:
+  #         node-version: "18"
+
+  #     - name: install pyright
+  #       run: npm install -g pyright@1.1.345 # try to keep this in sync with .pre-commit-config.yaml
+
+  #     - name: run pyright tests
+  #       run: make test-pyright
+  #       env:
+  #         COVERAGE_FILE: coverage/.coverage.linux-py${{ matrix.python-version }}-pyright
+  #         CONTEXT: linux-py${{ matrix.python-version }}-pyright
+
+  #     - name: store coverage files
+  #       uses: actions/upload-artifact@v4
+  #       with:
+  #         name: coverage-${{ matrix.os }}-${{ matrix.python-version }}-mypy${{ matrix.mypy-version }}
+  #         path: coverage
+
+  # coverage-combine:
+  #   # needs: [test, test-mypy]
+  #   needs: [test]
+  #   runs-on: ubuntu-latest
+
+  #   steps:
+  #     - uses: actions/checkout@v4
+
+  #     - uses: actions/setup-python@v5
+  #       with:
+  #         python-version: "3.12"
+
+  #     - name: get coverage files
+  #       uses: actions/download-artifact@v4
+  #       with:
+  #         merge-multiple: true
+  #         pattern: coverage-*
+  #         path: coverage
+
+  #     - run: pip install coverage[toml]
+
+  #     - run: ls -la coverage
+  #     - run: coverage combine coverage
+  #     - run: coverage report
+  #     - run: coverage html --show-contexts --title "smarter_kettle_client coverage for ${{ github.sha }}"
+
+  #     - name: Store coverage html
+  #       uses: actions/upload-artifact@v4
+  #       with:
+  #         name: coverage-html
+  #         path: htmlcov
+
+  # https://github.com/marketplace/actions/alls-green
+  check: # This job does nothing and is only used for the branch protection
+    if: always()
+
+    outputs:
+      result: ${{ steps.all-green.outputs.result }}
+
+    needs:
+      - lint
+      # - docs-build
+      - test
+      # - test-mypy
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Decide whether the needed jobs succeeded or failed
+        uses: re-actors/alls-green@release/v1
+        id: all-green
+        with:
+          jobs: ${{ toJSON(needs) }}
+
+  release:
+    needs: [check]
+    if: needs.check.outputs.result == 'success' && startsWith(github.ref, 'refs/tags/')
+    runs-on: ubuntu-latest
+    environment: release
+
+    permissions:
+      id-token: write
+
+    outputs:
+      smarter-kettle-client-version: ${{ steps.check-tag.outputs.VERSION }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: set up python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: install
+        run: pip install -U build
+
+      - name: check version
+        id: check-tag
+        uses: samuelcolvin/check-python-version@v4.1
+        with:
+          version_file_path: smarter_kettle_client/version.py
+
+      - name: build
+        run: python -m build
+
+      - name: Upload package to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
