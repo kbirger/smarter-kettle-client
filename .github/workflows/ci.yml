@@ -95,7 +95,7 @@ jobs:
       - name: install deps
         run: |
           pdm venv create --with-pip --force $PYTHON
-          pdm install -G testing -G email
+          pdm install -G testing
 
       - run: pdm info && pdm list
 
@@ -103,7 +103,7 @@ jobs:
 
       - run: mkdir coverage
 
-      - run: pytest -v --doctest-modules --junitxml=junit/test-results.xml --cov --cov-report=xml --cov-report=html
+      - run: pytest -v --doctest-modules --junitxml=coverage/test-results-.xml --cov --cov-report=xml --cov-report=html
 
       - name: store coverage files
         uses: actions/upload-artifact@v4
@@ -143,7 +143,7 @@ jobs:
   #     - name: install deps
   #       run: |
   #         pdm venv create --with-pip --force $PYTHON
-  #         pdm install -G testing -G mypy
+  #         pdm install -G mypy
 
   #     - name: install mypy
   #       if: steps.cache.outputs.cache-hit != 'true'
