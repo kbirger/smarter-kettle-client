@@ -103,13 +103,13 @@ jobs:
 
       - run: mkdir coverage
 
-      - run: pytest -v --doctest-modules --junitxml=coverage/test-results-.xml --cov --cov-report=xml --cov-report=html
+      - run: pdm run -v pytest -v  --doctest-modules --junitxml=.coverage/test-results-.xml --cov --cov-report=xml --cov-report=html
 
       - name: store coverage files
         uses: actions/upload-artifact@v4
         with:
           name: coverage-${{ matrix.os }}-${{ matrix.python-version }}
-          path: coverage
+          path: .coverage
   # test-mypy:
   #   name: mypy ${{ matrix.mypy-version }} / ${{ matrix.python-version }}
   #   runs-on: ubuntu-latest
