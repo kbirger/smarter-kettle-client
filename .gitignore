@@ -162,3 +162,5 @@ cython_debug/
 .local
 
 test.py
+
+.pdm-python

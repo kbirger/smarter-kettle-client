@@ -33,8 +33,8 @@ def patch_dict(target: dict, path: str, patch: dict) -> dict:
 
     if child is None:
         parent.update(patch)
-    else:
-        parent[child].update(patch)
+
+    parent[child].update(patch)
 
     return new_dict
 
@@ -45,8 +45,8 @@ def put_dict(target: dict, path: str, put: dict) -> dict:
 
     if child is None:
         return put
-    else:
-        parent[child] = put
+
+    parent[child] = put
 
     return new_dict
 

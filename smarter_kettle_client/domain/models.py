@@ -1,12 +1,13 @@
 from __future__ import annotations
 
-from smarter_kettle_client.dict_util import delete_dict, patch_dict, put_dict
-from . import smarter_client
 from abc import ABCMeta
 from abc import abstractmethod
-from typing import Any, OrderedDict, Self
-import datetime
+from typing import Any, Self
 from pprint import pprint
+
+import datetime
+from smarter_kettle_client.dict_util import delete_dict, patch_dict, put_dict
+from . import smarter_client
 
 
 class BaseEntity(metaclass=ABCMeta):
@@ -26,10 +27,10 @@ class BaseEntity(metaclass=ABCMeta):
         return self
 
     @classmethod
-    def from_data(cls, client: smarter_client.SmarterClient, data: dict, id: str = None) -> Self:
+    def from_data(cls, client: smarter_client.SmarterClient, data: dict, identifier: str = None) -> Self:
         self = cls(client)
         self._data = data
-        self.identifier = id
+        self.identifier = identifier
         self._init_data()
 
         return self
@@ -52,19 +53,19 @@ class BaseEntity(metaclass=ABCMeta):
 
         if event_name == 'patch':
             return patch_dict
-        elif event_name == 'put' and data is None:
+        if event_name == 'put' and data is None:
             return delete_dict
-        elif event_name == 'put':
+        if event_name == 'put':
             return put_dict
-        else:
-            return lambda: None
+
+        return lambda: None
 
     def _on_event(self, event):
         event_name: str = event.get('event')
         path: str = event.get('path')
         data: dict = event.get('data')
 
-        if event_name != 'put' and event_name != 'patch':
+        if event_name not in ('put', 'patch'):
             print(f'Unexpected event: {event_name}')
             pprint(event)
             return
@@ -154,7 +155,12 @@ class CommandInstance(BaseEntity):
         raise NotImplementedError()
 
     @classmethod
-    def from_data(cls, client: smarter_client.SmarterClient, data: dict, identifier: str, command: Command, device: 'Device') -> Self:
+    def from_data(cls,
+                  client: smarter_client.SmarterClient,
+                  data: dict,
+                  identifier: str,
+                  command: Command,
+                  device: 'Device') -> Self:
         self = CommandInstance(client)
         self.command = command
         self.identifier = identifier
@@ -170,11 +176,16 @@ class CommandInstance(BaseEntity):
 class Command(BaseEntity):
     name: str = None
     device: Device = None
-    instances: dict[str, CommandInstance] = dict()
-
+    instances: dict[str, CommandInstance] = {}
+    example: dict = None
     # Class methods
+
     @classmethod
-    def from_data(cls, client: smarter_client.SmarterClient, data: dict, name: str, device: Device) -> Self:
+    def from_data(cls,
+                  client: smarter_client.SmarterClient,
+                  data: dict,
+                  name: str,
+                  device: Device) -> Self:
         self = Command(client)
         self._data = data
         self.identifier = name

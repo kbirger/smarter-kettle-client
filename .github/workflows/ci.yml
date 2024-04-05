@@ -31,10 +31,12 @@ jobs:
           cache: true
           allow-python-prereleases: true
 
-      - name: install
-        run: |
-          pdm venv create --with-pip --force $PYTHON
-          pdm install -G linting -G email
+      - name: Python Linter
+        uses: sunnysid3up/python-linter@master
+        with:
+          source: "smarter_kettle_client"
+          mypy-options: "--ignore-missing-imports --show-error-codes"
+          pylint-options: "--rcfile=.pylintrc"
 
       # - uses: pre-commit/action@v3.0.1
       #   with:

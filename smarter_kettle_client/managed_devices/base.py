@@ -1,6 +1,5 @@
-from smarter_kettle_client.domain.models import Device
 from abc import ABCMeta
-from abc import abstractmethod
+from smarter_kettle_client.domain.models import Device
 
 
 class BaseDevice(metaclass=ABCMeta):
@@ -9,12 +8,12 @@ class BaseDevice(metaclass=ABCMeta):
     type: str
     user_id: str
 
-    def __init__(self, device: Device, friendly_name: str, type: str, user_id: str):
+    def __init__(self, device: Device, friendly_name: str, device_type: str, user_id: str):
         device.fetch()
         self.device = device
         self.friendly_name = friendly_name
         self.user_id = user_id
-        self.type = type
+        self.type = device_type
 
     @property
     def id(self):

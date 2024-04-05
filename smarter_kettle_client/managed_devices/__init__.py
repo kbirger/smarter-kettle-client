@@ -1,8 +1,14 @@
-from smarter_kettle_client.domain import Network, Device, SmarterClient
+"""
+Module containing wrappers for specific devices
+"""
+from smarter_kettle_client.domain import Network, Device
 from smarter_kettle_client.managed_devices.kettle_v3 import SmarterKettleV3
 
 
 def load_from_network(network: Network, user_id: str) -> list[Device]:
+    """
+    Get devices from a given network
+    """
     return (
         wrapper for wrapper in
         (
@@ -14,6 +20,10 @@ def load_from_network(network: Network, user_id: str) -> list[Device]:
 
 
 def get_device_wrapper(device: Device, user_id: str):
+    """
+    Get a device wrapper for a specific user by inferring the correct type
+    from the device properties
+    """
     device.fetch()
     model = device.status.get('device_model')
     match model:

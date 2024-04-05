@@ -1,11 +1,13 @@
-
+"""
+Module contains implementation of Smarter Firebase API
+"""
 from __future__ import annotations
+from pyrebase.pyrebase import Stream
 import pyrebase
 
 from smarter_kettle_client.domain.decorators.session import refreshsession
 from .models import LoginSession
 from .._consts import API_KEY
-from pyrebase.pyrebase import Stream
 
 
 class SmarterClient:
@@ -68,7 +70,13 @@ class SmarterClient:
     @refreshsession
     def send_command(self, device_id: str, command: str, data: dict):
         database = self.app.database()
-        return database.child('devices').child(device_id).child('commands').child(command).push(data, self.token)
+
+        return database \
+            .child('devices') \
+            .child(device_id) \
+            .child('commands') \
+            .child(command) \
+            .push(data, self.token)
 
     @refreshsession
     def watch_device_attribute(self, device_id: str, callback) -> Stream:
