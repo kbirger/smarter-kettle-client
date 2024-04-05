@@ -27,6 +27,8 @@ classifiers = [
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3.12",
 ]
+[tool.pdm]
+distribution = false
 [tool.pdm.dev-dependencies]
 testing = [
     "pytest>=6.2.0",
@@ -40,9 +42,6 @@ testing = [
 Homepage = "https://www.github.com/kbirger/smarter-kettle-client"
 "Release Notes" = "https://www.github.com/kbirger/smarter-kettle-client"
 Source = "https://www.github.com/kbirger/smarter-kettle-client"
-[tool.pdm]
-distribution = false
-
 [build-system]
 requires = ["pdm-backend"]
 build-backend = "pdm.backend"
