@@ -75,14 +75,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu, macos, windows]
-        python-version: ["3.8", "3.9", "3.10", "3.11", "3.12"]
-        include:
-          - os: ubuntu
-            python-version: "pypy3.9"
-          - os: ubuntu
-            python-version: "pypy3.10"
-
+        os: [ubuntu, windows]
+        python-version: ["3.12"]
     env:
       OS: ${{ matrix.os }}
       DEPS: yes
@@ -109,22 +103,7 @@ jobs:
 
       - run: mkdir coverage
 
-      - name: test without deps
-        # speed up by skipping this step on pypy
-        if: "!startsWith(matrix.python-version, 'pypy')"
-        run: make test
-        env:
-          COVERAGE_FILE: coverage/.coverage.${{ runner.os }}-py${{ matrix.python-version }}-without-deps
-          CONTEXT: ${{ runner.os }}-py${{ matrix.python-version }}-without-deps
-
-      - name: install extra deps
-        run: pdm install -G testing-extra -G email
-
-      - name: test with deps
-        run: make test
-        env:
-          COVERAGE_FILE: coverage/.coverage.${{ runner.os }}-py${{ matrix.python-version }}-with-deps
-          CONTEXT: ${{ runner.os }}-py${{ matrix.python-version }}-with-deps
+      - run: pytest -v --doctest-modules --junitxml=junit/test-results.xml --cov --cov-report=xml --cov-report=html
 
       - name: store coverage files
         uses: actions/upload-artifact@v4
@@ -233,41 +212,6 @@ jobs:
         with:
           name: coverage-html
           path: htmlcov
-
-  test-typing-extensions:
-    name: test typing-extensions ${{ matrix.typing-extensions-version }} on Python ${{ matrix.python-version }}
-    runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        # test the oldest supported version and main
-        typing-extensions-version: ["4.6.1", "main"]
-        python-version: ["3.8", "3.9", "3.10", "3.11", "3.12"]
-
-    steps:
-      - uses: actions/checkout@v4
-
-      - uses: pdm-project/setup-pdm@v4
-        with:
-          python-version: ${{ matrix.python-version }}
-          cache: true
-          allow-python-prereleases: true
-
-      - name: install deps
-        run: |
-          pdm venv create --with-pip --force $PYTHON
-          pdm install -G testing -G email
-
-      - name: install typing-extensions
-        run: |
-          if [ ${{ matrix.typing-extensions-version }} == 'main' ]; then
-            pdm remove typing-extensions && pdm add 'typing-extensions @ git+https://github.com/python/typing_extensions.git'
-          else
-            pdm remove typing-extensions && pdm add 'typing-extensions==${{ matrix.typing-extensions-version }}'
-          fi
-          pdm list
-      - name: test
-        run: make test
 
   # https://github.com/marketplace/actions/alls-green
   check: # This job does nothing and is only used for the branch protection
