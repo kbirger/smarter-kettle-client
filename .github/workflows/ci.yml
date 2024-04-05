@@ -109,7 +109,13 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: coverage-${{ matrix.os }}-${{ matrix.python-version }}
-          path: .coverage
+          path: coverage
+      - name: Store coverage html
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-html
+          path: htmlcov
+
   # test-mypy:
   #   name: mypy ${{ matrix.mypy-version }} / ${{ matrix.python-version }}
   #   runs-on: ubuntu-latest
@@ -181,37 +187,37 @@ jobs:
   #         name: coverage-${{ matrix.os }}-${{ matrix.python-version }}-mypy${{ matrix.mypy-version }}
   #         path: coverage
 
-  coverage-combine:
-    # needs: [test, test-mypy]
-    needs: [test]
-    runs-on: ubuntu-latest
+  # coverage-combine:
+  #   # needs: [test, test-mypy]
+  #   needs: [test]
+  #   runs-on: ubuntu-latest
 
-    steps:
-      - uses: actions/checkout@v4
+  #   steps:
+  #     - uses: actions/checkout@v4
 
-      - uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
+  #     - uses: actions/setup-python@v5
+  #       with:
+  #         python-version: "3.12"
 
-      - name: get coverage files
-        uses: actions/download-artifact@v4
-        with:
-          merge-multiple: true
-          pattern: coverage-*
-          path: coverage
+  #     - name: get coverage files
+  #       uses: actions/download-artifact@v4
+  #       with:
+  #         merge-multiple: true
+  #         pattern: coverage-*
+  #         path: coverage
 
-      - run: pip install coverage[toml]
+  #     - run: pip install coverage[toml]
 
-      - run: ls -la coverage
-      - run: coverage combine coverage
-      - run: coverage report
-      - run: coverage html --show-contexts --title "smarter_kettle_client coverage for ${{ github.sha }}"
+  #     - run: ls -la coverage
+  #     - run: coverage combine coverage
+  #     - run: coverage report
+  #     - run: coverage html --show-contexts --title "smarter_kettle_client coverage for ${{ github.sha }}"
 
-      - name: Store coverage html
-        uses: actions/upload-artifact@v4
-        with:
-          name: coverage-html
-          path: htmlcov
+  #     - name: Store coverage html
+  #       uses: actions/upload-artifact@v4
+  #       with:
+  #         name: coverage-html
+  #         path: htmlcov
 
   # https://github.com/marketplace/actions/alls-green
   check: # This job does nothing and is only used for the branch protection
