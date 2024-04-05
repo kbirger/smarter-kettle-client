@@ -2,13 +2,11 @@ from setuptools import setup
 
 setup(
     name="Smarter Kettle client library",
-    version="0.0.1",
-    description='Firebase Admin Python SDK',
+    version="0.1.0",
+    description='Client library for interacting with Smarter Kettle api',
     long_description="",
     url="https://www.github.com/kbirger/smarter-kettle-client",
     project_urls={
-        'Release Notes': 'https://firebase.google.com/support/release-notes/admin/python',
-        'Source': 'https://github.com/firebase/firebase-admin-python',
     },
     author="@kbirger",
     license="MIT",
