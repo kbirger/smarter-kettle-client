@@ -260,7 +260,7 @@ jobs:
     if: needs.check.outputs.result == 'success' && startsWith(github.ref, 'refs/tags/')
     runs-on: ubuntu-latest
     environment: release
-
+    
     permissions:
       id-token: write
 
@@ -296,9 +296,11 @@ jobs:
       - name: Upload package to PyPI
         runs-on: ubuntu-latest
         uses: pypa/gh-action-pypi-publish@release/v1
+
         environment:
-          name: Release
+          name: pypi
           url: https://pypi.org/p/smarter-client
+          
         permissions:
           id-token: write
         # steps:
