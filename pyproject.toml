@@ -23,7 +23,7 @@ readme = "README.md"
 license = { text = "MIT" }
 keywords = ["smarter kettle python"]
 classifiers = [
-    "License :: MIT",
+    "License :: MIT License ",
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3.12",
 ]
