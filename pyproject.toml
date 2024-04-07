@@ -38,6 +38,10 @@ testing = [
     "pytest-mock>=3.6.1",
 ]
 
+build = [
+ "build"   
+]
+
 [project.urls]
 Homepage = "https://www.github.com/kbirger/smarter-kettle-client"
 "Release Notes" = "https://www.github.com/kbirger/smarter-kettle-client"

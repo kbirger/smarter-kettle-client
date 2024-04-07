@@ -128,6 +128,7 @@ jobs:
     needs:
       - lint
       # - docs-build
+      - build
       - test
       # - test-mypy
 
@@ -152,11 +153,24 @@ jobs:
       with:
         python-version: "3.12"
 
-    - name: install
-      run: pip install -U build
+    - uses: pdm-project/setup-pdm@v4
+      with:
+        python-version: ${{ matrix.python-version }}
+        cache: true
+        allow-python-prereleases: true
 
+    - name: install deps
+      run: |
+        pdm venv create --with-pip --force $PYTHON
+        pdm install -G build
+
+    # - name: install
+    #   run: pip install -U build
+
+    - run: pdm run python -m build
+      name: Build the distribution packages
     - name: Store the distribution packages
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: python-package-distributions
         path: dist/
@@ -184,7 +198,7 @@ jobs:
         version_file_path: smarter_kettle_client/version.py
 
     - name: Download all the dists
-      uses: actions/download-artifact@v3
+      uses: actions/download-artifact@v4
       with:
         name: python-package-distributions
         path: dist/
@@ -230,7 +244,7 @@ jobs:
 
     steps:
     - name: Download all the dists
-      uses: actions/download-artifact@v3
+      uses: actions/download-artifact@v4
       with:
         name: python-package-distributions
         path: dist/
@@ -253,7 +267,7 @@ jobs:
 
     steps:
     - name: Download all the dists
-      uses: actions/download-artifact@v3
+      uses: actions/download-artifact@v4
       with:
         name: python-package-distributions
         path: dist/
