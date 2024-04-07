@@ -237,7 +237,7 @@ jobs:
     runs-on: ubuntu-latest
 
     environment:
-      name: Release
+      name: test-release
       url: https://test.pypi.org/p/smarter-client
 
     permissions:
