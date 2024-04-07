@@ -1,6 +1,6 @@
 [project]
 name = "Smarter Kettle client library"
-version = "0.1.0"
+version = "0.1.1"
 description = "Smarter Kettle client library"
 authors = [
     { name = "Kirill Birger", email = "kbirger@gmail.com" },

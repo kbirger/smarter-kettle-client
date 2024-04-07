@@ -232,7 +232,7 @@ jobs:
     name: Publish Python 🐍 distribution 📦 to TestPyPI
     if: needs.check.outputs.result == 'success' && startsWith(github.ref, 'refs/heads/dev')
     needs:
-    - build
+    - check
     runs-on: ubuntu-latest
 
     environment:
