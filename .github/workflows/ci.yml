@@ -312,7 +312,7 @@ jobs:
 
         # - name: Publish package distributions to PyPI
 
-github-release:
+  github-release:
     name: >-
       Sign the Python 🐍 distribution 📦 with Sigstore
       and upload them to GitHub Release
