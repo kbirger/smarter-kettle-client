@@ -116,121 +116,7 @@ jobs:
           name: coverage-html
           path: htmlcov
 
-  # pypi-publish:
-  #   name: Upload release to PyPI
-  #   runs-on: ubuntu-latest
-  #   environment:
-  #     name: Release
-  #     url: https://pypi.org/p/smarter-client
-  #   permissions:
-  #     id-token: write  # IMPORTANT: this permission is mandatory for trusted publishing
-  #   steps:
-  #   # retrieve your distributions here
-
-  #   - name: Publish package distributions to PyPI
-  #     uses: pypa/gh-action-pypi-publish@release/v1
-  # test-mypy:
-  #   name: mypy ${{ matrix.mypy-version }} / ${{ matrix.python-version }}
-  #   runs-on: ubuntu-latest
-  #   strategy:
-  #     fail-fast: false
-  #     matrix:
-  #       # test recent mypy versions on 3.10 and mypy 1.0.1 on all supported python versions
-  #       # if you change the value in the lockfile add the old value to this list
-  #       mypy-version: ["1.0.1", "lockfile", "1.2.0", "1.4.1", "1.5.1"]
-  #       python-version: ["3.10"]
-  #       include:
-  #         - mypy-version: "lockfile"
-  #           python-version: "3.8"
-  #         - mypy-version: "lockfile"
-  #           python-version: "3.9"
-  #         - mypy-version: "lockfile"
-  #           python-version: "3.11"
-  #         # TODO: Once Python 3.7 is removed, and mypy is bumped on the lockfile, we can add 'lockfile' again.
-  #         - mypy-version: "1.5.1"
-  #           python-version: "3.12"
-
-  #   steps:
-  #     - uses: actions/checkout@v4
-
-  #     - uses: pdm-project/setup-pdm@v4
-  #       with:
-  #         python-version: ${{ matrix.python-version }}
-  #         cache: true
-  #         allow-python-prereleases: true
-
-  #     - name: install deps
-  #       run: |
-  #         pdm venv create --with-pip --force $PYTHON
-  #         pdm install -G mypy
-
-  #     - name: install mypy
-  #       if: steps.cache.outputs.cache-hit != 'true'
-  #       run: |
-  #         if [ ${{ matrix.mypy-version }} != 'lockfile' ]; then
-  #           pdm remove -G linting mypy && pdm remove -G mypy mypy && pdm add mypy==${{ matrix.mypy-version }}
-  #         fi
-  #         pdm list
-
-  #     - run: mkdir coverage
-
-  #     - name: run mypy tests
-  #       run: pdm run coverage run -m pytest tests/mypy --test-mypy
-  #       env:
-  #         COVERAGE_FILE: coverage/.coverage.linux-py${{ matrix.python-version }}-mypy${{ matrix.mypy-version }}
-  #         CONTEXT: linux-py${{ matrix.python-version }}-mypy${{ matrix.mypy-version }}
-
-  #     - name: install node for pyright
-  #       uses: actions/setup-node@v4
-  #       with:
-  #         node-version: "18"
-
-  #     - name: install pyright
-  #       run: npm install -g pyright@1.1.345 # try to keep this in sync with .pre-commit-config.yaml
-
-  #     - name: run pyright tests
-  #       run: make test-pyright
-  #       env:
-  #         COVERAGE_FILE: coverage/.coverage.linux-py${{ matrix.python-version }}-pyright
-  #         CONTEXT: linux-py${{ matrix.python-version }}-pyright
-
-  #     - name: store coverage files
-  #       uses: actions/upload-artifact@v4
-  #       with:
-  #         name: coverage-${{ matrix.os }}-${{ matrix.python-version }}-mypy${{ matrix.mypy-version }}
-  #         path: coverage
-
-  # coverage-combine:
-  #   # needs: [test, test-mypy]
-  #   needs: [test]
-  #   runs-on: ubuntu-latest
-
-  #   steps:
-  #     - uses: actions/checkout@v4
-
-  #     - uses: actions/setup-python@v5
-  #       with:
-  #         python-version: "3.12"
-
-  #     - name: get coverage files
-  #       uses: actions/download-artifact@v4
-  #       with:
-  #         merge-multiple: true
-  #         pattern: coverage-*
-  #         path: coverage
-
-  #     - run: pip install coverage[toml]
-
-  #     - run: ls -la coverage
-  #     - run: coverage combine coverage
-  #     - run: coverage report
-  #     - run: coverage html --show-contexts --title "smarter_kettle_client coverage for ${{ github.sha }}"
-
-  #     - name: Store coverage html
-  #       uses: actions/upload-artifact@v4
-  #       with:
-  #         name: coverage-html
-  #         path: htmlcov
+  
 
   # https://github.com/marketplace/actions/alls-green
   check: # This job does nothing and is only used for the branch protection
@@ -242,6 +128,7 @@ jobs:
     needs:
       - lint
       # - docs-build
+      - build
       - test
       # - test-mypy
 
@@ -257,6 +144,7 @@ jobs:
   build:
     name: Build
     needs: [test, lint]
+    runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
 
@@ -265,11 +153,24 @@ jobs:
       with:
         python-version: "3.12"
 
-    - name: install
-      run: pip install -U build
+    - uses: pdm-project/setup-pdm@v4
+      with:
+        python-version: ${{ matrix.python-version }}
+        cache: true
+        allow-python-prereleases: true
 
+    - name: install deps
+      run: |
+        pdm venv create --with-pip --force $PYTHON
+        pdm install -G build
+
+    # - name: install
+    #   run: pip install -U build
+
+    - run: pdm run python -m build
+      name: Build the distribution packages
     - name: Store the distribution packages
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: python-package-distributions
         path: dist/
@@ -284,6 +185,7 @@ jobs:
       url: https://pypi.org/p/smarter-client
       
     permissions:
+      contents: write  # IMPORTANT: mandatory for making GitHub Releases
       id-token: write
 
     outputs:
@@ -291,13 +193,13 @@ jobs:
 
     steps:
     - name: check version
-        id: check-tag
-        uses: samuelcolvin/check-python-version@v4.1
-        with:
-          version_file_path: smarter_kettle_client/version.py
+      id: check-tag
+      uses: samuelcolvin/check-python-version@v4.1
+      with:
+        version_file_path: smarter_kettle_client/version.py
 
     - name: Download all the dists
-      uses: actions/download-artifact@v3
+      uses: actions/download-artifact@v4
       with:
         name: python-package-distributions
         path: dist/
@@ -331,11 +233,11 @@ jobs:
     name: Publish Python 🐍 distribution 📦 to TestPyPI
     if: needs.check.outputs.result == 'success' && startsWith(github.ref, 'refs/heads/dev')
     needs:
-    - build
+    - check
     runs-on: ubuntu-latest
 
     environment:
-      name: testpypi
+      name: test-release
       url: https://test.pypi.org/p/smarter-client
 
     permissions:
@@ -343,54 +245,55 @@ jobs:
 
     steps:
     - name: Download all the dists
-      uses: actions/download-artifact@v3
+      uses: actions/download-artifact@v4
       with:
         name: python-package-distributions
         path: dist/
     - name: Publish distribution 📦 to TestPyPI
       uses: pypa/gh-action-pypi-publish@release/v1
       with:
+        verbose: true
         repository-url: https://test.pypi.org/legacy/
 
-  github-release:
-    name: >-
-      Sign the Python 🐍 distribution 📦 with Sigstore
-      and upload them to GitHub Release
-    needs:
-    - release
-    runs-on: ubuntu-latest
+  # github-release:
+  #   name: >-
+  #     Sign the Python 🐍 distribution 📦 with Sigstore
+  #     and upload them to GitHub Release
+  #   needs:
+  #   - release
+  #   runs-on: ubuntu-latest
 
-    permissions:
-      contents: write  # IMPORTANT: mandatory for making GitHub Releases
-      id-token: write  # IMPORTANT: mandatory for sigstore
+  #   permissions:
+  #     contents: write  # IMPORTANT: mandatory for making GitHub Releases
+  #     id-token: write  # IMPORTANT: mandatory for sigstore
 
-    steps:
-    - name: Download all the dists
-      uses: actions/download-artifact@v3
-      with:
-        name: python-package-distributions
-        path: dist/
-    - name: Sign the dists with Sigstore
-      uses: sigstore/gh-action-sigstore-python@v1.2.3
-      with:
-        inputs: >-
-          ./dist/*.tar.gz
-          ./dist/*.whl
-    - name: Create GitHub Release
-      env:
-        GITHUB_TOKEN: ${{ github.token }}
-      run: >-
-        gh release create
-        '${{ github.ref_name }}'
-        --repo '${{ github.repository }}'
-        --notes ""
-    - name: Upload artifact signatures to GitHub Release
-      env:
-        GITHUB_TOKEN: ${{ github.token }}
-      # Upload to GitHub Release using the `gh` CLI.
-      # `dist/` contains the built packages, and the
-      # sigstore-produced signatures and certificates.
-      run: >-
-        gh release upload
-        '${{ github.ref_name }}' dist/**
-        --repo '${{ github.repository }}'
+  #   steps:
+  #   - name: Download all the dists
+  #     uses: actions/download-artifact@v4
+  #     with:
+  #       name: python-package-distributions
+  #       path: dist/
+  #   - name: Sign the dists with Sigstore
+  #     uses: sigstore/gh-action-sigstore-python@v1.2.3
+  #     with:
+  #       inputs: >-
+  #         ./dist/*.tar.gz
+  #         ./dist/*.whl
+  #   - name: Create GitHub Release
+  #     env:
+  #       GITHUB_TOKEN: ${{ github.token }}
+  #     run: >-
+  #       gh release create
+  #       '${{ github.ref_name }}'
+  #       --repo '${{ github.repository }}'
+  #       --notes ""
+  #   - name: Upload artifact signatures to GitHub Release
+  #     env:
+  #       GITHUB_TOKEN: ${{ github.token }}
+  #     # Upload to GitHub Release using the `gh` CLI.
+  #     # `dist/` contains the built packages, and the
+  #     # sigstore-produced signatures and certificates.
+  #     run: >-
+  #       gh release upload
+  #       '${{ github.ref_name }}' dist/**
+  #       --repo '${{ github.repository }}'
