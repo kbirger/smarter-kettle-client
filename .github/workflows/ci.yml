@@ -192,6 +192,7 @@ jobs:
       smarter-kettle-client-version: ${{ steps.check-tag.outputs.VERSION }}
 
     steps:
+    - uses: actions/checkout@v4
     - name: check version
       id: check-tag
       uses: samuelcolvin/check-python-version@v4.1
