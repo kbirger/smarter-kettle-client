@@ -220,8 +220,11 @@ jobs:
       - publish
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
-
+    - name: Download all the dists
+      uses: actions/download-artifact@v3
+      with:
+        name: python-package-distributions
+        path: dist/
     - name: Sign the dists with Sigstore
       uses: sigstore/gh-action-sigstore-python@v1.2.3
       with:
