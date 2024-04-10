@@ -211,6 +211,8 @@ jobs:
         inputs: >-
           ./dist/*.tar.gz
           ./dist/*.whl
+    - name: Upload package to PyPI
+      uses: pypa/gh-action-pypi-publish@release/v1
     - name: Create GitHub Release
       env:
         GITHUB_TOKEN: ${{ github.token }}
@@ -250,7 +252,7 @@ jobs:
       with:
         name: python-package-distributions
         path: dist/
-    - name: Publish distribution 📦 to TestPyPI
+    - name: Upload package to TestPyPI
       uses: pypa/gh-action-pypi-publish@release/v1
       with:
         verbose: true
