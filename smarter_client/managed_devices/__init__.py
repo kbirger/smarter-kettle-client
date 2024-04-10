@@ -1,8 +1,8 @@
 """
 Module containing wrappers for specific devices
 """
-from smarter_kettle_client.domain import Network, Device
-from smarter_kettle_client.managed_devices.kettle_v3 import SmarterKettleV3
+from smarter_client.domain import Network, Device
+from smarter_client.managed_devices.kettle_v3 import SmarterKettleV3
 
 
 def load_from_network(network: Network, user_id: str) -> list[Device]:

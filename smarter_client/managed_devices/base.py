@@ -1,5 +1,5 @@
 from abc import ABCMeta
-from smarter_kettle_client.domain.models import Device
+from smarter_client.domain.models import Device
 
 
 class BaseDevice(metaclass=ABCMeta):

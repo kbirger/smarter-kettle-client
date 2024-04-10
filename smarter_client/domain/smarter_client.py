@@ -5,7 +5,7 @@ from __future__ import annotations
 from pyrebase.pyrebase import Stream
 import pyrebase
 
-from smarter_kettle_client.domain.decorators.session import refreshsession
+from smarter_client.domain.decorators.session import refreshsession
 from .models import LoginSession
 from .._consts import API_KEY
 

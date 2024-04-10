@@ -1,7 +1,7 @@
 from copy import deepcopy
 from typing import Generator
 import pytest
-from smarter_kettle_client.dict_util import delete_dict, patch_dict, put_dict
+from smarter_client.dict_util import delete_dict, patch_dict, put_dict
 
 
 @pytest.fixture()

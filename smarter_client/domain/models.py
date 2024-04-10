@@ -6,7 +6,7 @@ from typing import Any, Self
 from pprint import pprint
 
 import datetime
-from smarter_kettle_client.dict_util import delete_dict, patch_dict, put_dict
+from smarter_client.dict_util import delete_dict, patch_dict, put_dict
 from . import smarter_client
 
 

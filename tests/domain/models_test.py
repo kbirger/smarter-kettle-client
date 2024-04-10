@@ -9,7 +9,7 @@ import pytest_mock
 import sys
 import types
 
-from smarter_kettle_client.domain.models import Command, CommandInstance, Commands, LoginSession
+from smarter_client.domain.models import Command, CommandInstance, Commands, LoginSession
 
 
 # module_name = 'smarter_client'
