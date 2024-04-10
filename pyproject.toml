@@ -1,6 +1,5 @@
 [project]
 name = "smarter-client"
-version = "0.1.1"
 description = "Smarter Kettle client library"
 authors = [
     { name = "Kirill Birger", email = "kbirger@gmail.com" },
@@ -18,6 +17,7 @@ dependencies = [
     "pyrebase4==4.7.1",
     "setuptools>=69.2.0",
 ]
+dynamic = ['version']
 requires-python = ">=3.12.2"
 readme = "README.md"
 license = { text = "MIT" }
@@ -29,6 +29,10 @@ classifiers = [
 ]
 [tool.pdm]
 distribution = false
+
+[tool.hatch.version]
+path = 'smarter_kettle_client/version.py'
+
 [tool.pdm.dev-dependencies]
 testing = [
     "pytest>=6.2.0",
@@ -38,9 +42,8 @@ testing = [
     "pytest-mock>=3.6.1",
 ]
 
-build = [
- "build"   
-]
+
+build = ["build"]
 
 [project.urls]
 Homepage = "https://www.github.com/kbirger/smarter-kettle-client"
