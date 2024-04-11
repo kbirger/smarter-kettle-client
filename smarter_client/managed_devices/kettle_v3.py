@@ -1,5 +1,5 @@
 from __future__ import annotations
-from typing import Any, Dict
+from typing import Any, Callable, Dict
 
 from smarter_client.domain import Device, SmarterClient
 from smarter_client.managed_devices.base import BaseDevice
@@ -42,9 +42,12 @@ class SmarterKettleV3(BaseDevice):
     def settings(self):
         return self.device.settings
 
-    def watch_status(self, handler: Any):
+    def watch_status(self, handler: Callable):
         self._status_handler = handler
         self.device.watch(self._on_event)
+
+    def dispose(self):
+        self.device.unwatch()
 
     def add_alarm(self, value: int):
         self._send_command('add_alarm', value)

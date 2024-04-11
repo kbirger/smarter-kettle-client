@@ -1,6 +1,7 @@
 # from __future__ import annotations
 
 # from unittest.mock import MagicMock
+from typing import Type
 from unittest.mock import MagicMock, Mock
 import pytest
 import pytest_mock
@@ -9,28 +10,13 @@ import pytest_mock
 import sys
 import types
 
-from smarter_client.domain.models import Command, CommandInstance, Commands, LoginSession
+from smarter_client.domain.models import Command, CommandInstance, Commands, Device, LoginSession
+from smarter_client.domain.smarter_client import SmarterClient
 
-
-# module_name = 'smarter_client'
-# bogus_module = types.ModuleType(module_name)
-# sys.modules[module_name] = bogus_module
-# bogus_module.SmarterClient = MagicMock(name=module_name+'.SmarterClient')
-# SmarterClient
 
 @pytest.fixture
-def SmarterClient(mocker):
-    # return mocker.patch(
-    #     'smarter_kettle_client.domain.smarter_client.SmarterClient',
-    #     MagicMock(
-    #         name='SmarterClient',
+def SmarterClientMock(mocker):
 
-    #         wraps=False,
-    #         new=False,
-    #         spec={
-    #             'sign_in': MagicMock()
-    #         })
-    # )
     mock = MagicMock(
         name='SmarterClient',
         spec={
@@ -46,19 +32,6 @@ def SmarterClient(mocker):
         }
     )
     return mock
-    pass
-    # print(mocker)
-    # print(pytest_mock.mocker)
-    # return bogus_module.SmarterClient()
-
-# from smarter_kettle_client.domain.models import Command, Commands  # nopep8
-
-
-# @pytest.fixture
-# def mock_client(mocker):
-#     print(mocker)
-#     print(pytest_mock.mocker)
-#     return bogus_module.SmarterClient()
 
 
 class TestCommands:
@@ -69,8 +42,8 @@ class TestCommands:
     #     assert commands.get('test') == isinstance(Command)
     pass
 
-    def test_from_data(self, mocker, SmarterClient):
-        client = SmarterClient()
+    def test_from_data(self, mocker, SmarterClientMock):
+        client = SmarterClientMock()
 
         assert isinstance(
             Commands.from_data(
@@ -81,8 +54,8 @@ class TestCommands:
             Commands
         )
 
-    def test_commands(self, mocker, SmarterClient):
-        mock_client = SmarterClient()
+    def test_commands(self, mocker, SmarterClientMock):
+        mock_client = SmarterClientMock()
         mock_device = mocker.MagicMock()
 
         command_from_data_spy = mocker.spy(Command, 'from_data')
@@ -96,10 +69,14 @@ class TestCommands:
         command_from_data_spy.assert_called_with(mock_client, {
             'test-instance': {'value': {'state': 'RCV'}}}, 'test', mock_device)
 
+    def test_cannot_be_instantiated_from_id(self, mocker, SmarterClientMock):
+        with pytest.raises(RuntimeError):
+            Commands.from_id()
+
 
 class TestCommandInstance:
-    def test_from_data(self, mocker, SmarterClient):
-        mock_client = SmarterClient()
+    def test_from_data(self, mocker, SmarterClientMock):
+        mock_client = SmarterClientMock()
         mock_device = mocker.MagicMock()
         mock_command = mocker.MagicMock()
         command = CommandInstance.from_data(
@@ -121,11 +98,118 @@ class TestCommandInstance:
 
 
 class TestCommand:
-    pass
+    def test_command_from_data_should_create_instance(self, mocker, SmarterClientMock):
+        mock_client = SmarterClientMock()
+        mock_device = mocker.MagicMock()
+        command = Command.from_data(
+            mock_client,
+            {
+                'test-instance': {'value': 0, 'state': 'RCV'}
+            },
+            'test',
+            mock_device
+        )
+
+        assert command.identifier == 'test'
+        assert command.device == mock_device
+        assert command.instances.get('test-instance').state == 'RCV'
+
+    def test_command_execute(self, mocker, SmarterClientMock):
+        mock_client = SmarterClientMock()
+        mock_device = mocker.MagicMock(identifier='device-1')
+        command = Command.from_data(
+            mock_client,
+            {
+                'test-instance': {'value': 0, 'state': 'RCV'}
+            },
+            'test',
+            mock_device
+        )
+
+        command.execute('user-1', 5)
+
+        mock_client.send_command.assert_called_with(
+            'device-1',
+            'test',
+            {'value': 5, 'user_id': 'user-1'})
 
 
 class TestDevice:
-    pass
+    @pytest.fixture
+    def device(self, SmarterClientMock):
+        mock_client = SmarterClientMock()
+        return Device.from_data(
+            mock_client,
+            {
+                'commands': {
+                    'test': {
+                        'test-instance': {'value': 0, 'state': 'RCV'}
+                    }
+                },
+                'settings': {
+                    'network': 'network-1'
+                },
+                'status': {
+
+                }
+            },
+            'device-1'
+        )
+
+    def test_device_from_data_should_create_instance(self, device):
+
+        assert device.identifier == 'device-1'
+        assert device.commands.get('test').identifier == 'test'
+
+    def test_watch_calls_client(self, mocker, device: Device, SmarterClientMock: Type[SmarterClient]):
+        mock_client = SmarterClientMock()
+        callback = mocker.Mock()
+        device.watch(callback)
+
+        mock_client.watch_device_attribute.assert_called_with(
+            'device-1', mocker.ANY)
+
+    def test_watch_calls_callback_on_event(self, mocker, device: Device, SmarterClientMock: Type[SmarterClient]):
+        mock_client = SmarterClientMock()
+
+        def watch_device_attribute_mock(id, callback):
+            callback({'test': 'value'})
+            return mocker.Mock()
+
+        mock_client.watch_device_attribute.side_effect = watch_device_attribute_mock
+        callback = mocker.Mock()
+        device.watch(callback)
+
+        callback.assert_called_with({'test': 'value'})
+
+    def test_watch_twice_raises_error(self, mocker, device: Device, SmarterClientMock: Type[SmarterClient]):
+        callback = mocker.Mock()
+        device.watch(callback)
+
+        with pytest.raises(RuntimeError):
+            device.watch(callback)
+
+    def test_unwatch_does_not_raise_error(self, mocker, device: Device, SmarterClientMock: Type[SmarterClient]):
+        callback = mocker.Mock()
+        # device.watch(callback)
+        device.unwatch()
+
+    def test_unwatch_closes_stream(self, mocker, device: Device, SmarterClientMock: Type[SmarterClient]):
+        mock_client = SmarterClientMock()
+        callback = mocker.Mock()
+        stream_close_mock = mocker.Mock()
+        mock_client.watch_device_attribute.return_value = stream_close_mock
+        device.watch(callback)
+
+        device.unwatch()
+
+        stream_close_mock.assert_called()
+
+    def test_fetch_calls_client(self, device: Device, SmarterClientMock: Type[SmarterClient]):
+        mock_client = SmarterClientMock()
+        device.fetch()
+
+        mock_client.get_device.assert_called_with('device-1')
 
 
 class TestLoginSession:

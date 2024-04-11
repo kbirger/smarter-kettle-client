@@ -2,6 +2,7 @@
 Module contains implementation of Smarter Firebase API
 """
 from __future__ import annotations
+from typing import Callable
 from pyrebase.pyrebase import Stream
 import pyrebase
 
@@ -10,7 +11,7 @@ from .models import LoginSession
 from .._consts import API_KEY
 
 
-class SmarterClient:
+class SmarterClient:  # pragma: no cover
     """
     A client for interacting with the Smarter API.
     """
@@ -79,6 +80,8 @@ class SmarterClient:
             .push(data, self.token)
 
     @refreshsession
-    def watch_device_attribute(self, device_id: str, callback) -> Stream:
+    def watch_device_attribute(self, device_id: str, callback) -> Callable:
         database = self.app.database()
-        return database.child('devices').child(device_id).stream(callback, self.token)
+        stream = database.child('devices').child(
+            device_id).stream(callback, self.token)
+        return lambda: stream.close()

@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from abc import ABCMeta
 from abc import abstractmethod
-from typing import Any, Self
+from typing import Any, Callable, Self
 from pprint import pprint
 
 import datetime
@@ -126,7 +126,7 @@ class Commands(BaseEntity, dict[str, 'Command']):
             in self._data.items()
         })
 
-    def _fetch(self) -> dict:
+    def _fetch(self) -> dict:  # pragma: no cover
         raise NotImplementedError()
 
 
@@ -151,7 +151,7 @@ class CommandInstance(BaseEntity):
         self.state = self._data.get('state')
         self.response = self._data.get('response')
 
-    def _fetch(self) -> dict:
+    def _fetch(self) -> dict:  # pragma: no cover
         raise NotImplementedError()
 
     @classmethod
@@ -189,8 +189,8 @@ class Command(BaseEntity):
         self = Command(client)
         self._data = data
         self.identifier = name
-        self.name = name
         self.device = device
+        self._init_data()
 
         return self
 
@@ -201,7 +201,6 @@ class Command(BaseEntity):
         return self.client.send_command(self.device.identifier, self.name, {"user_id": user_id, "value": value})
 
     def _init_data(self) -> None:
-        self.identifier = self._data.get('name')
         self.name = self.identifier
         self.example = self._data.get('example')
         self.instances = {
@@ -212,14 +211,8 @@ class Command(BaseEntity):
             if key != 'example'
         }
 
-    def _fetch(self) -> dict:
+    def _fetch(self) -> dict:  # pragma: no cover
         raise NotImplementedError()
-
-    def create_child(self, path: list[str], data: dict):
-        child = CommandInstance.from_data(
-            self.client, data, path[0], self, self.device)
-        self.instances.append(child)
-        return child
 # </Command>
 
 
@@ -227,16 +220,27 @@ class Device(BaseEntity):
     commands: Commands = None
     settings: Settings = None
     status: Status = None
+    _stream_close: Callable = None
 
     def __init__(self, client: smarter_client.SmarterClient):
         super().__init__(client)
 
     # Public methods
-    def watch(self, callback):
+    def watch(self, callback=lambda: None):
+        if self._stream_close is not None:
+            raise RuntimeError(
+                'Already watching device. Call unwatch() first. Support for multiple callbacks may be implemented in a later version')
+
         def on_data(event):
             self._on_event(event)
             callback(event)
-        self.client.watch_device_attribute(self.identifier, on_data)
+        self._stream_close = self.client.watch_device_attribute(
+            self.identifier, on_data)
+
+    def unwatch(self):
+        if self._stream_close is not None:
+            self._stream_close()
+            self._stream_close = None
 
     # Private methods
     def _init_data(self):
