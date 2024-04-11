@@ -281,14 +281,16 @@ class LoginSession:
         self.refresh_token = data.get('refreshToken')
         self.session_duration = data.get('expiresIn')
 
-        self.expires_at = datetime.datetime.now() + datetime.timedelta(0,
-                                                                       int(self.session_duration))
+        self.expires_at = self._get_expiration_datetime(data)
+
+    def _get_expiration_datetime(self, data: dict):
+        return datetime.datetime.now() + datetime.timedelta(0, int(data.get('expiresIn')))
 
     def is_expired(self) -> bool:
         """
         Returns True if the session has expired.
         """
-        return self.expires_at > datetime.datetime.now()
+        return self.expires_at <= datetime.datetime.now()
 
     @property
     def expires_in(self) -> int:
@@ -301,8 +303,7 @@ class LoginSession:
         self.id_token = data.get('idToken')
         self.refresh_token = data.get('refreshToken')
         self.local_id = data.get('userId')
-        self.expires_at = datetime.datetime.now() + datetime.timedelta(0,
-                                                                       int(data.get('expires_in')))
+        self.expires_at = self._get_expiration_datetime(data)
 
 
 # </LoginSession>
