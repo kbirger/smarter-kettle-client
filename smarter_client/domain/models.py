@@ -4,6 +4,7 @@ from abc import ABCMeta
 from abc import abstractmethod
 from typing import Any, Callable, Self
 from pprint import pprint
+from pyrebase.pyrebase import Stream
 
 import datetime
 from smarter_client.dict_util import delete_dict, patch_dict, put_dict
@@ -220,27 +221,41 @@ class Device(BaseEntity):
     commands: Commands = None
     settings: Settings = None
     status: Status = None
-    _stream_close: Callable = None
+    _stream: Stream = None
 
     def __init__(self, client: smarter_client.SmarterClient):
         super().__init__(client)
 
     # Public methods
-    def watch(self, callback=lambda: None):
-        if self._stream_close is not None:
+    def watch(self, callback: Callable[[dict], None]):
+        if self._stream is not None:
             raise RuntimeError(
                 'Already watching device. Call unwatch() first. Support for multiple callbacks may be implemented in a later version')
 
         def on_data(event):
             self._on_event(event)
             callback(event)
-        self._stream_close = self.client.watch_device_attribute(
+        self._stream = self.client.watch_device_attribute(
             self.identifier, on_data)
 
     def unwatch(self):
-        if self._stream_close is not None:
-            self._stream_close()
-            self._stream_close = None
+        if self._stream is not None:
+            try:
+                self._stream.close()
+            except Exception as e:
+                print(f'Error closing stream: {e}')
+                # TODO: log
+            self._stream = None
+
+    @property
+    def is_watching(self):
+        """Returns True if the device is being watched."""
+        return self._stream is not None
+
+    @property
+    def is_stream_active(self):
+        """Experimental: Returns True if the stream connection is active."""
+        return self.is_watching and self._stream.sse.running
 
     # Private methods
     def _init_data(self):
@@ -279,12 +294,12 @@ class LoginSession:
         self.id_token = data.get('idToken')
         self.registered = data.get('registered')
         self.refresh_token = data.get('refreshToken')
-        self.session_duration = data.get('expiresIn')
+        self.session_duration = int(data.get('expiresIn'))
 
-        self.expires_at = self._get_expiration_datetime(data)
+        self.expires_at = self._get_expiration_datetime()
 
-    def _get_expiration_datetime(self, data: dict):
-        return datetime.datetime.now() + datetime.timedelta(0, int(data.get('expiresIn')))
+    def _get_expiration_datetime(self):
+        return datetime.datetime.now() + datetime.timedelta(0, self.session_duration)
 
     def is_expired(self) -> bool:
         """
@@ -303,7 +318,7 @@ class LoginSession:
         self.id_token = data.get('idToken')
         self.refresh_token = data.get('refreshToken')
         self.local_id = data.get('userId')
-        self.expires_at = self._get_expiration_datetime(data)
+        self.expires_at = self._get_expiration_datetime()
 
 
 # </LoginSession>

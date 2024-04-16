@@ -317,6 +317,32 @@ class TestLoginSession:
             assert session.expires_in == 101
             assert session.expires_at == datetime.datetime.fromtimestamp(191)
 
+    def test_refresh_updates_time(self):
+        with time_machine.travel(datetime.datetime.fromtimestamp(0, tz=ZoneInfo('UTC')), tick=False) as traveler:
+            session = LoginSession(
+                {
+                    'kind': 'test-kind',
+                    'localId': 'test-id',
+                    'email': 'test-email',
+                    'displayName': 'test-display-name',
+                    'idToken': 'test-token',
+                    'registered': True,
+                    'refreshToken': 'test-refresh',
+                    'expiresIn': 100
+                }
+            )
+
+            traveler.shift(99)
+
+            session.update({
+                'idToken': 'new-token',
+                'localId': 'test-id',
+                'refreshToken': 'test-refresh',
+            })
+
+            assert session.expires_at == datetime.datetime.fromtimestamp(
+                199)
+
 
 class TestNetwork:
     pass
