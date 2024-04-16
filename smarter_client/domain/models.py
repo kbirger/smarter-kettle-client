@@ -30,7 +30,7 @@ class BaseEntity(metaclass=ABCMeta):
     @classmethod
     def from_data(cls, client: smarter_client.SmarterClient, data: dict, identifier: str = None) -> Self:
         self = cls(client)
-        self._data = data
+        self._data = data or {}
         self.identifier = identifier
         self._init_data()
 

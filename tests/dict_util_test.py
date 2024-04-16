@@ -87,7 +87,7 @@ class TestPatchDict:
         }
 
         assert delete_dict(
-            original_state, 'commands/test_command/test-instance') == expected
+            original_state, 'commands/test_command/test-instance', None) == expected
 
     def test_delete_root_error(self, original_state: dict):
         with pytest.raises(ValueError):

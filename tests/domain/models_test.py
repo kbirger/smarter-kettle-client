@@ -1,17 +1,13 @@
-# from __future__ import annotations
-
-# from unittest.mock import MagicMock
 import datetime
 from typing import Type
-from unittest.mock import MagicMock, Mock, patch
+from unittest.mock import MagicMock, Mock
 from zoneinfo import ZoneInfo
+
 import pytest
 import time_machine
 
-import sys
-import types
-
-from smarter_client.domain.models import Command, CommandInstance, Commands, Device, LoginSession
+from smarter_client.domain.models import (Command, CommandInstance, Commands,
+                                          Device, LoginSession)
 from smarter_client.domain.smarter_client import SmarterClient
 
 
@@ -151,7 +147,7 @@ class TestDevice:
                     'network': 'network-1'
                 },
                 'status': {
-
+                    'default': True
                 }
             },
             'device-1'
@@ -191,26 +187,90 @@ class TestDevice:
             device.watch(callback)
 
     def test_unwatch_does_not_raise_error(self, mocker, device: Device, SmarterClientMock: Type[SmarterClient]):
-        callback = mocker.Mock()
-        # device.watch(callback)
         device.unwatch()
 
     def test_unwatch_closes_stream(self, mocker, device: Device, SmarterClientMock: Type[SmarterClient]):
         mock_client = SmarterClientMock()
         callback = mocker.Mock()
-        stream_close_mock = mocker.Mock()
-        mock_client.watch_device_attribute.return_value = stream_close_mock
+        mock_stream = mocker.MagicMock()
+        mock_client.watch_device_attribute.return_value = mock_stream
         device.watch(callback)
 
         device.unwatch()
 
-        stream_close_mock.assert_called()
+        mock_stream.close.assert_called()
 
     def test_fetch_calls_client(self, device: Device, SmarterClientMock: Type[SmarterClient]):
         mock_client = SmarterClientMock()
         device.fetch()
 
         mock_client.get_device.assert_called_with('device-1')
+
+    def test_device_update_put(self, device: Device, SmarterClientMock: Type[SmarterClient], mocker):
+        device_callback = {}
+        watch_callback = mocker.Mock()
+        stream_mock = mocker.MagicMock()
+        mock_client = SmarterClientMock()
+
+        def device_watch_mock(self, cb):
+            device_callback['value'] = cb
+        mock_client.watch_device_attribute.side_effect = device_watch_mock
+        mock_client.watch_device_attribute.return_value = stream_mock
+
+        device.watch(watch_callback)
+
+        assert device_callback is not None
+        device_callback['value']({
+            'event': 'put',
+            'path': 'status',
+            'data': {'test': True}
+        })
+
+        assert device.status == {'test': True}
+
+    def test_device_update_patch(self, device: Device, SmarterClientMock: Type[SmarterClient], mocker):
+        device_callback = {}
+        watch_callback = mocker.Mock()
+        stream_mock = mocker.MagicMock()
+        mock_client = SmarterClientMock()
+
+        def device_watch_mock(self, cb):
+            device_callback['value'] = cb
+        mock_client.watch_device_attribute.side_effect = device_watch_mock
+        mock_client.watch_device_attribute.return_value = stream_mock
+
+        device.watch(watch_callback)
+
+        assert device_callback is not None
+        device_callback['value']({
+            'event': 'patch',
+            'path': 'status',
+            'data': {'test': True}
+        })
+
+        assert device.status == {'default': True, 'test': True}
+
+    def test_device_update_delete(self, device: Device, SmarterClientMock: Type[SmarterClient], mocker):
+        device_callback = {}
+        watch_callback = mocker.Mock()
+        stream_mock = mocker.MagicMock()
+        mock_client = SmarterClientMock()
+
+        def device_watch_mock(self, cb):
+            device_callback['value'] = cb
+        mock_client.watch_device_attribute.side_effect = device_watch_mock
+        mock_client.watch_device_attribute.return_value = stream_mock
+
+        device.watch(watch_callback)
+
+        assert device_callback is not None
+        device_callback['value']({
+            'event': 'put',
+            'path': 'status',
+            'data': None
+        })
+
+        assert device.status == {}
 
 
 class TestLoginSession:
@@ -310,12 +370,12 @@ class TestLoginSession:
             traveler.shift(90)
             session.update({
                 'idToken': 'new-token',
-                'expiresIn': 101
+                'refreshToken': 'test-refresh'
             })
 
             assert session.id_token == 'new-token'
-            assert session.expires_in == 101
-            assert session.expires_at == datetime.datetime.fromtimestamp(191)
+            assert session.expires_in == 100
+            assert session.expires_at == datetime.datetime.fromtimestamp(190)
 
     def test_refresh_updates_time(self):
         with time_machine.travel(datetime.datetime.fromtimestamp(0, tz=ZoneInfo('UTC')), tick=False) as traveler:
