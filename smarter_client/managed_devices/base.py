@@ -20,6 +20,13 @@ class BaseDevice(metaclass=ABCMeta):
         self.user_id = user_id
         self.type = device_type
 
+    def set_logger(self, logger):
+        self._logger = logger
+
+    def log(self, message):
+        if self._logger is not None:
+            self._logger.debug(message)
+
     @property
     def id(self):
         return self.device.identifier
@@ -53,13 +60,16 @@ class BaseDevice(metaclass=ABCMeta):
     def _ensure_watching(self):
         if not self.device.is_watching:
             self.device.watch(self._on_event)
-            refresh_after = self.device.client.session.expires_in * .75
+            refresh_after = self.device.client.session.expires_in * .95
+            self.log(f'session to be refreshed in {refresh_after} seconds. duration: {
+                     self.device.client.session.expires_in}, expiration time: {self.device.client.session.expires_at}')
 
             self.refresh_timer = threading.Timer(
                 refresh_after, self.refresh_session)
             self.refresh_timer.start()
 
     def refresh_session(self):
+        self.log('Refreshing session')
         self.device.unwatch()
         self.device.client.refresh()
         self._ensure_watching()
