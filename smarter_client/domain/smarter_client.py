@@ -79,9 +79,10 @@ class SmarterClient:  # pragma: no cover
             .child(command) \
             .push(data, self.token)
 
+    # TODO fix leaky abstraction
     @refreshsession
-    def watch_device_attribute(self, device_id: str, callback) -> Callable:
+    def watch_device_attribute(self, device_id: str, callback) -> pyrebase.pyrebase.Stream:
         database = self.app.database()
         stream = database.child('devices').child(
             device_id).stream(callback, self.token)
-        return lambda: stream.close()
+        return stream

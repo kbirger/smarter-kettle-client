@@ -51,7 +51,7 @@ def put_dict(target: dict, path: str, put: dict) -> dict:
     return new_dict
 
 
-def delete_dict(target: dict, path: str) -> dict:
+def delete_dict(target: dict, path: str, value: None = None) -> dict:
     new_dict = deepcopy(target)
     parent, child = _find_or_create_node(new_dict, path)
 
@@ -61,14 +61,3 @@ def delete_dict(target: dict, path: str) -> dict:
         del parent[child]
 
     return new_dict
-
-# def xpatch_dict(target: dict, path: patch: dict):
-#   for key, value in source.items():
-#       if isinstance(value, dict):
-#           if key not in target:
-#               target[key] = {}
-#           patch_dict(target[key], value)
-#       if
-#       else:
-#           target[key] = value
-#   return target
