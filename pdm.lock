@@ -5,7 +5,7 @@
 groups = ["default", "testing", "build"]
 strategy = ["cross_platform", "inherit_metadata"]
 lock_version = "4.4.1"
-content_hash = "sha256:14692f8a3df2532ddf8e045d1448a26af4638f8bcd2fd3c51bf083bb3ec6e00a"
+content_hash = "sha256:df04b820c57f1e5f292fc8b523eae02a28d1a551b99eead66920d6a8ee18269a"
 
 [[package]]
 name = "aiohttp"
@@ -618,7 +618,7 @@ files = [
 ]
 
 [[package]]
-name = "pyrebase4"
+name = "pyrebase"
 version = "4.7.1"
 url = "https://github.com/somechazzy/Pyrebase4/tarball/eb2d02578e63925bf2b421f3bfa7449364f84695"
 summary = "A simple python wrapper for the Firebase API with current deps"
