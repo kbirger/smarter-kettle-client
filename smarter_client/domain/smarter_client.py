@@ -3,7 +3,6 @@ Module contains implementation of Smarter Firebase API
 """
 from __future__ import annotations
 from typing import Callable
-from pyrebase.pyrebase import Stream
 import pyrebase
 
 from smarter_client.domain.decorators.session import refreshsession

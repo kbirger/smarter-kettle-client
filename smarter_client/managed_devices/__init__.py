@@ -31,7 +31,7 @@ def get_device_wrapper(device: Device, user_id: str):
     match model:
         case 'SMKET01':
             managed = SmarterKettleV3.from_device(device, user_id)
-            managed.watch_status()
+            managed.subscribe_status()
             return managed
         case _:
             print(f'Unknown device model: {model}')
