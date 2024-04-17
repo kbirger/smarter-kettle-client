@@ -9,7 +9,7 @@ dependencies = [
     "astroid==3.1.0",
     "pylint==3.1.0",
     "aiohttp>=3.9.5",
-    "https://github.com/somechazzy/Pyrebase4/tarball/eb2d02578e63925bf2b421f3bfa7449364f84695",
+    "pyrebase@https://github.com/somechazzy/Pyrebase4/tarball/eb2d02578e63925bf2b421f3bfa7449364f84695",
     "setuptools>=69.5.1",
 ]
 dynamic = ['version']
@@ -27,6 +27,9 @@ distribution = false
 
 [tool.hatch.version]
 path = 'smarter_client/version.py'
+
+[tool.hatch.metadata]
+allow-direct-references = true
 
 [tool.pdm.dev-dependencies]
 testing = [
