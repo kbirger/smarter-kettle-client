@@ -12,6 +12,7 @@ class BaseDevice(metaclass=ABCMeta):
     user_id: str
     _status_subscriptions: set[Callable[[dict], None]] = set()
     refresh_timer: threading.Timer
+    _logger = None
 
     def __init__(self, device: Device, friendly_name: str, device_type: str, user_id: str):
         device.fetch()
@@ -74,7 +75,7 @@ class BaseDevice(metaclass=ABCMeta):
         self.device.client.refresh()
         self._ensure_watching()
 
-    def subscribe_status(self, handler: Callable[[dict], None] = None):
+    def subscribe_status(self, handler: Callable[[dict], None] = lambda x: None):
         self._ensure_watching()
         self._status_subscriptions.add(handler)
 
