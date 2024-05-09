@@ -31,6 +31,10 @@ jobs:
           cache: true
           allow-python-prereleases: true
 
+      - name: install deps
+        run: |
+          pdm venv create --with-pip --force $PYTHON
+          pdm install -G testing
       # - name: Python Linter
         # uses: sunnysid3up/python-linter@master
         # with:
