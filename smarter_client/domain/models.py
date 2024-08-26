@@ -344,12 +344,17 @@ class Network(BaseEntity):
         return self.client.get_network(self.identifier)
 
     def _init_data(self) -> None:
-        self.access_tokens_fcm = self._data.get('access_tokens_fcm')
-        self.associated_devices = [Device.from_id(self.client,
-                                                  key) for key in self._data.get('associated_devices')]
+        try:
+            self.access_tokens_fcm = self._data.get('access_tokens_fcm')
+            self.associated_devices = [Device.from_id(self.client,
+                                                    key) for key in self._data.get('associated_devices')]
 
-        self.name = self._data.get('name')
-        self.owner = User.from_id(self.client, self._data.get('owner'))
+            self.name = self._data.get('name')
+            self.owner = User.from_id(self.client, self._data.get('owner'))
+        except Exception as ex:
+            _LOGGER.error(ex)
+            _LOGGER.info(self._data)
+            raise ex
 
 # </Network>
 
