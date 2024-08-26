@@ -9,6 +9,9 @@ from pyrebase.pyrebase import Stream
 import datetime
 from smarter_client.dict_util import delete_dict, patch_dict, put_dict
 from . import smarter_client
+import logging
+
+_LOGGER = logging.getLogger(__name__)
 
 
 class BaseEntity(metaclass=ABCMeta):
@@ -43,6 +46,7 @@ class BaseEntity(metaclass=ABCMeta):
     def fetch(self):
         if self.is_stub:
             self._data = self._fetch()
+            _LOGGER.info('Fetched network %o', self._data)
             self._init_data()
             self.is_stub = False
 
