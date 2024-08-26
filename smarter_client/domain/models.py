@@ -9,6 +9,9 @@ from pyrebase.pyrebase import Stream
 import datetime
 from smarter_client.dict_util import delete_dict, patch_dict, put_dict
 from . import smarter_client
+import logging
+
+_LOGGER = logging.getLogger(__name__)
 
 
 class BaseEntity(metaclass=ABCMeta):
@@ -43,6 +46,7 @@ class BaseEntity(metaclass=ABCMeta):
     def fetch(self):
         if self.is_stub:
             self._data = self._fetch()
+            _LOGGER.info('Fetched network %o', self._data)
             self._init_data()
             self.is_stub = False
 
@@ -340,12 +344,17 @@ class Network(BaseEntity):
         return self.client.get_network(self.identifier)
 
     def _init_data(self) -> None:
-        self.access_tokens_fcm = self._data.get('access_tokens_fcm')
-        self.associated_devices = [Device.from_id(self.client,
-                                                  key) for key in self._data.get('associated_devices')]
+        try:
+            self.access_tokens_fcm = self._data.get('access_tokens_fcm')
+            self.associated_devices = [Device.from_id(self.client,
+                                                    key) for key in self._data.get('associated_devices')]
 
-        self.name = self._data.get('name')
-        self.owner = User.from_id(self.client, self._data.get('owner'))
+            self.name = self._data.get('name')
+            self.owner = User.from_id(self.client, self._data.get('owner'))
+        except Exception as ex:
+            _LOGGER.error(ex)
+            _LOGGER.info(self._data)
+            raise ex
 
 # </Network>
 
