@@ -7,4 +7,4 @@ pytest-asyncio >= 0.23.6
 pytest-mock >= 3.14.0
 aiohttp ~= 3.9
 setuptools ~= 69
-pyrebase4 >= 4.8.0
+pyrebase-air >= 4.9.1
