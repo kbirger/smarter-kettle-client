@@ -4,7 +4,7 @@ from __future__ import annotations as _annotations
 
 __all__ = 'VERSION', 'version_info'
 
-VERSION = '0.2.2'
+VERSION = '0.2.3'
 """The version of Smarter Kettle Client."""
 
 
