@@ -25,6 +25,11 @@ classifiers = [
 [tool.pdm]
 distribution = false
 
+[tool.pdm.scripts]
+lint = "pylint --rcfile .pylintrc smarter_client"
+test = "pytest -v  --doctest-modules --junitxml=coverage/test-results.xml --cov --cov-report=xml --cov-report=html"
+version = "python -c 'import smarter_client.version; print(smarter_client.version.version_info())'"
+
 [tool.hatch.version]
 path = 'smarter_client/version.py'
 
@@ -43,7 +48,10 @@ testing = [
 ]
 
 
-build = ["build"]
+build = [
+    "build",
+    "mypy>=1.11.2",
+]
 
 [project.urls]
 Homepage = "https://www.github.com/kbirger/smarter-kettle-client"
