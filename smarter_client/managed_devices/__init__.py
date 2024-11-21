@@ -2,6 +2,7 @@
 Module containing wrappers for specific devices
 """
 from smarter_client.domain import Network, Device
+from smarter_client.managed_devices.coffee_v2 import SmarterCoffeeV2
 from smarter_client.managed_devices.kettle_v3 import SmarterKettleV3
 from smarter_client.managed_devices.base import BaseDevice
 
@@ -33,5 +34,7 @@ def get_device_wrapper(device: Device, user_id: str):
             managed = SmarterKettleV3.from_device(device, user_id)
             managed.subscribe_status()
             return managed
+        case 'SMCOF01':
+            managed = SmarterCoffeeV2.from_device(device, user_id)
         case _:
             print(f'Unknown device model: {model}')
