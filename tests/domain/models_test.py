@@ -1,13 +1,16 @@
 import datetime
-from typing import Type
 from unittest.mock import MagicMock, Mock
 from zoneinfo import ZoneInfo
 
 import pytest
 import time_machine
-
-from smarter_client.domain.models import (Command, CommandInstance, Commands,
-                                          Device, LoginSession)
+from smarter_client.domain.models import (
+    Command,
+    CommandInstance,
+    Commands,
+    Device,
+    LoginSession,
+)
 from smarter_client.domain.smarter_client import SmarterClient
 
 
@@ -158,7 +161,7 @@ class TestDevice:
         assert device.identifier == 'device-1'
         assert device.commands.get('test').identifier == 'test'
 
-    def test_watch_calls_client(self, mocker, device: Device, SmarterClientMock: Type[SmarterClient]):
+    def test_watch_calls_client(self, mocker, device: Device, SmarterClientMock: type[SmarterClient]):
         mock_client = SmarterClientMock()
         callback = mocker.Mock()
         device.watch(callback)
@@ -166,7 +169,7 @@ class TestDevice:
         mock_client.watch_device_attribute.assert_called_with(
             'device-1', mocker.ANY)
 
-    def test_watch_calls_callback_on_event(self, mocker, device: Device, SmarterClientMock: Type[SmarterClient]):
+    def test_watch_calls_callback_on_event(self, mocker, device: Device, SmarterClientMock: type[SmarterClient]):
         mock_client = SmarterClientMock()
 
         def watch_device_attribute_mock(id, callback):
@@ -179,17 +182,17 @@ class TestDevice:
 
         callback.assert_called_with({'test': 'value'})
 
-    def test_watch_twice_raises_error(self, mocker, device: Device, SmarterClientMock: Type[SmarterClient]):
+    def test_watch_twice_raises_error(self, mocker, device: Device, SmarterClientMock: type[SmarterClient]):
         callback = mocker.Mock()
         device.watch(callback)
 
         with pytest.raises(RuntimeError):
             device.watch(callback)
 
-    def test_unwatch_does_not_raise_error(self, mocker, device: Device, SmarterClientMock: Type[SmarterClient]):
+    def test_unwatch_does_not_raise_error(self, mocker, device: Device, SmarterClientMock: type[SmarterClient]):
         device.unwatch()
 
-    def test_unwatch_closes_stream(self, mocker, device: Device, SmarterClientMock: Type[SmarterClient]):
+    def test_unwatch_closes_stream(self, mocker, device: Device, SmarterClientMock: type[SmarterClient]):
         mock_client = SmarterClientMock()
         callback = mocker.Mock()
         mock_stream = mocker.MagicMock()
@@ -200,13 +203,13 @@ class TestDevice:
 
         mock_stream.close.assert_called()
 
-    def test_fetch_calls_client(self, device: Device, SmarterClientMock: Type[SmarterClient]):
+    def test_fetch_calls_client(self, device: Device, SmarterClientMock: type[SmarterClient]):
         mock_client = SmarterClientMock()
         device.fetch()
 
         mock_client.get_device.assert_called_with('device-1')
 
-    def test_device_update_put(self, device: Device, SmarterClientMock: Type[SmarterClient], mocker):
+    def test_device_update_put(self, device: Device, SmarterClientMock: type[SmarterClient], mocker):
         device_callback = {}
         watch_callback = mocker.Mock()
         stream_mock = mocker.MagicMock()
@@ -228,7 +231,7 @@ class TestDevice:
 
         assert device.status == {'test': True}
 
-    def test_device_update_patch(self, device: Device, SmarterClientMock: Type[SmarterClient], mocker):
+    def test_device_update_patch(self, device: Device, SmarterClientMock: type[SmarterClient], mocker):
         device_callback = {}
         watch_callback = mocker.Mock()
         stream_mock = mocker.MagicMock()
@@ -250,7 +253,7 @@ class TestDevice:
 
         assert device.status == {'default': True, 'test': True}
 
-    def test_device_update_delete(self, device: Device, SmarterClientMock: Type[SmarterClient], mocker):
+    def test_device_update_delete(self, device: Device, SmarterClientMock: type[SmarterClient], mocker):
         device_callback = {}
         watch_callback = mocker.Mock()
         stream_mock = mocker.MagicMock()

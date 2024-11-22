@@ -1,5 +1,6 @@
 from __future__ import annotations
-from typing import Any, Dict
+
+from typing import Any
 
 from smarter_client.domain import Device, SmarterClient
 from smarter_client.managed_devices.base import BaseDevice
@@ -80,7 +81,7 @@ class SmarterKettleV3(BaseDevice):
     def set_region(self, value: int):
         self.send_command('set_region', value)
 
-    def set_user(self, value: Dict[str, Any]):
+    def set_user(self, value: dict[str, Any]):
         self.send_command('set_user', value)
 
     def start_auto_boil(self):

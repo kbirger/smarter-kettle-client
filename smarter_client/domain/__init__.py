@@ -1,2 +1,2 @@
+from .models import Device, LoginSession, Network, User
 from .smarter_client import SmarterClient
-from .models import Network, Device, LoginSession, User

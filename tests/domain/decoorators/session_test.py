@@ -1,6 +1,6 @@
-from unittest.mock import MagicMock, Mock, PropertyMock
-import pytest
+from unittest.mock import Mock
 
+import pytest
 from smarter_client.domain.decorators.session import refreshsession
 
 

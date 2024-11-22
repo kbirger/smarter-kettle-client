@@ -2,18 +2,20 @@
 Module contains implementation of Smarter Firebase API
 """
 from __future__ import annotations
-from typing import Callable
+
 import pyrebase
 
 from smarter_client.domain.decorators.session import refreshsession
-from .models import LoginSession
+
 from .._consts import API_KEY
+from .models import LoginSession
 
 
 class SmarterClient:  # pragma: no cover
     """
     A client for interacting with the Smarter API.
     """
+
     session: LoginSession
 
     def __init__(self):

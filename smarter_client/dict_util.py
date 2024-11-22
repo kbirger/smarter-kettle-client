@@ -1,5 +1,5 @@
-from copy import deepcopy
 from collections import deque
+from copy import deepcopy
 
 
 def _tokenize_path(path: str):
@@ -45,8 +45,7 @@ def put_dict(target: dict, path: str, put: dict) -> dict:
 
     if child is None:
         return put
-    else:
-        parent[child] = put
+    parent[child] = put
 
     return new_dict
 
@@ -57,7 +56,6 @@ def delete_dict(target: dict, path: str, value: None = None) -> dict:
 
     if child is None:
         raise ValueError('Cannot delete root of dict')
-    else:
-        del parent[child]
+    del parent[child]
 
     return new_dict

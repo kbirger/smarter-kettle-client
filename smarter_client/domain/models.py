@@ -1,15 +1,17 @@
 from __future__ import annotations
 
-from abc import ABCMeta
-from abc import abstractmethod
-from typing import Any, Callable, Self
+import datetime
+import logging
+from abc import ABCMeta, abstractmethod
+from collections.abc import Callable
 from pprint import pprint
+from typing import Any, Self
+
 from pyrebase.pyrebase import Stream
 
-import datetime
 from smarter_client.dict_util import delete_dict, patch_dict, put_dict
+
 from . import smarter_client
-import logging
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -165,7 +167,7 @@ class CommandInstance(BaseEntity):
                   data: dict,
                   identifier: str,
                   command: Command,
-                  device: 'Device') -> Self:
+                  device: Device) -> Self:
         self = CommandInstance(client)
         self.command = command
         self.identifier = identifier

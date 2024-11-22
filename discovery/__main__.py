@@ -1,8 +1,10 @@
 import itertools
-from pathlib import Path
-from smarter_client.domain.models import Command, Commands, Device, Network, User
-from smarter_client.domain.smarter_client import SmarterClient
 import json
+from pathlib import Path
+
+from smarter_client.domain.models import Command, Commands, Network, User
+from smarter_client.domain.smarter_client import SmarterClient
+
 username = None
 password = None
 
@@ -11,13 +13,13 @@ report_path = Path('report').resolve()
 if not credentialsPath.exists():
     print(f"Credentials file not found at {credentialsPath}")
     exit(1)
-    
+
 print(f"Reading credentials file: {credentialsPath}")
-with open('credentials', 'r') as cred:
+with open('credentials') as cred:
     try:
         (username,password) = cred.read().splitlines()
-    except ValueError as error:
-        print(f"Credentials file is not in correct format. One line with email, followed by one line with password.")
+    except ValueError:
+        print("Credentials file is not in correct format. One line with email, followed by one line with password.")
 
 def load_from_network(client: SmarterClient, network: Network):
     network.fetch()
@@ -34,7 +36,7 @@ report = {}
 user: User = User.from_id(client, session.local_id)
 user.fetch()
 devices = list(
-    itertools.chain.from_iterable(        
+    itertools.chain.from_iterable(
         load_from_network(client, network)
         for network in user.networks.values()
     )
@@ -45,8 +47,8 @@ def str_cmd(cmd: Command):
 def str_cmds(commands: Commands):
     for command in commands.items():
         yield {"name": command[0], "data": command[1]._data }
-report["devices"] = [{ 
-    "id": device.identifier, 
+report["devices"] = [{
+    "id": device.identifier,
     "status": device.status,
     "commands": list(str_cmds(device.commands)) } for device in devices]
 

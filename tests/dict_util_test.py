@@ -1,5 +1,6 @@
+from collections.abc import Generator
 from copy import deepcopy
-from typing import Generator
+
 import pytest
 from smarter_client.dict_util import delete_dict, patch_dict, put_dict
 
