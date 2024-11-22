@@ -48,32 +48,32 @@ class BaseEntity(metaclass=ABCMeta):
     def fetch(self):
         if self.is_stub:
             self._data = self._fetch()
-            _LOGGER.info('Fetched network %o', self._data)
+            _LOGGER.info("Fetched network %o", self._data)
             self._init_data()
             self.is_stub = False
 
     # Private methods
 
     def _get_handler(self, event: dict):
-        event_name: str = event.get('event')
-        data: dict = event.get('data')
+        event_name: str = event.get("event")
+        data: dict = event.get("data")
 
-        if event_name == 'patch':
+        if event_name == "patch":
             return patch_dict
-        if event_name == 'put' and data is None:
+        if event_name == "put" and data is None:
             return delete_dict
-        if event_name == 'put':
+        if event_name == "put":
             return put_dict
 
         return lambda: None
 
     def _on_event(self, event):
-        event_name: str = event.get('event')
-        path: str = event.get('path')
-        data: dict = event.get('data')
+        event_name: str = event.get("event")
+        path: str = event.get("path")
+        data: dict = event.get("data")
 
-        if event_name not in ('put', 'patch'):
-            print(f'Unexpected event: {event_name}')
+        if event_name not in ("put", "patch"):
+            print(f"Unexpected event: {event_name}")
             pprint(event)
             return
 
@@ -83,7 +83,7 @@ class BaseEntity(metaclass=ABCMeta):
             self._data = handler(self._data, path, data)
             self._init_data()
         except BaseException as e:
-            print(f'Error handling update: {e}')
+            print(f"Error handling update: {e}")
             pprint((event_name, path, data))
 
     @abstractmethod
@@ -95,13 +95,13 @@ class BaseEntity(metaclass=ABCMeta):
         pass
 
     def __str__(self):
-        return f'{self.__class__.__name__}({self.identifier})'
+        return f"{self.__class__.__name__}({self.identifier})"
 
 
 # </BaseEntiy>
 
 
-class Commands(BaseEntity, dict[str, 'Command']):
+class Commands(BaseEntity, dict[str, "Command"]):
     device: Device
 
     # Class methods
@@ -115,7 +115,7 @@ class Commands(BaseEntity, dict[str, 'Command']):
 
     @classmethod
     def from_id(cls) -> Self:
-        raise RuntimeError('Cannot create Commands from id')
+        raise RuntimeError("Cannot create Commands from id")
 
     def __init__(self, client: smarter_client.SmarterClient, device: Device):
         super().__init__(client)
@@ -127,11 +127,9 @@ class Commands(BaseEntity, dict[str, 'Command']):
 
     def _build_commands(self):
         super().clear()
-        super().update({
-            key: Command.from_data(self.client, value, key, self.device)
-            for key, value
-            in self._data.items()
-        })
+        super().update(
+            {key: Command.from_data(self.client, value, key, self.device) for key, value in self._data.items()}
+        )
 
     def _fetch(self) -> dict:  # pragma: no cover
         raise NotImplementedError()
@@ -153,21 +151,18 @@ class CommandInstance(BaseEntity):
         super().__init__(client)
 
     def _init_data(self) -> None:
-        self.user_id = self._data.get('user_id')
-        self.value = self._data.get('value')
-        self.state = self._data.get('state')
-        self.response = self._data.get('response')
+        self.user_id = self._data.get("user_id")
+        self.value = self._data.get("value")
+        self.state = self._data.get("state")
+        self.response = self._data.get("response")
 
     def _fetch(self) -> dict:  # pragma: no cover
         raise NotImplementedError()
 
     @classmethod
-    def from_data(cls,
-                  client: smarter_client.SmarterClient,
-                  data: dict,
-                  identifier: str,
-                  command: Command,
-                  device: Device) -> Self:
+    def from_data(
+        cls, client: smarter_client.SmarterClient, data: dict, identifier: str, command: Command, device: Device
+    ) -> Self:
         self = CommandInstance(client)
         self.command = command
         self.identifier = identifier
@@ -176,6 +171,7 @@ class CommandInstance(BaseEntity):
         self._init_data()
 
         return self
+
 
 # </CommandInstance>
 
@@ -188,11 +184,7 @@ class Command(BaseEntity):
     # Class methods
 
     @classmethod
-    def from_data(cls,
-                  client: smarter_client.SmarterClient,
-                  data: dict,
-                  name: str,
-                  device: Device) -> Self:
+    def from_data(cls, client: smarter_client.SmarterClient, data: dict, name: str, device: Device) -> Self:
         self = Command(client)
         self._data = data
         self.identifier = name
@@ -209,17 +201,17 @@ class Command(BaseEntity):
 
     def _init_data(self) -> None:
         self.name = self.identifier
-        self.example = self._data.get('example')
+        self.example = self._data.get("example")
         self.instances = {
-            key: CommandInstance.from_data(
-                self.client, value, key, self, self.device)
-            for key, value
-            in self._data.items()
-            if key != 'example'
+            key: CommandInstance.from_data(self.client, value, key, self, self.device)
+            for key, value in self._data.items()
+            if key != "example"
         }
 
     def _fetch(self) -> dict:  # pragma: no cover
         raise NotImplementedError()
+
+
 # </Command>
 
 
@@ -236,20 +228,21 @@ class Device(BaseEntity):
     def watch(self, callback: Callable[[dict], None]):
         if self._stream is not None:
             raise RuntimeError(
-                'Already watching device. Call unwatch() first. Support for multiple callbacks may be implemented in a later version')
+                "Already watching device. Call unwatch() first. Support for multiple callbacks may be implemented in a later version"
+            )
 
         def on_data(event):
             self._on_event(event)
             callback(event)
-        self._stream = self.client.watch_device_attribute(
-            self.identifier, on_data)
+
+        self._stream = self.client.watch_device_attribute(self.identifier, on_data)
 
     def unwatch(self):
         if self._stream is not None:
             try:
                 self._stream.close()
             except Exception as e:
-                print(f'Error closing stream: {e}')
+                print(f"Error closing stream: {e}")
                 # TODO: log
             self._stream = None
 
@@ -265,18 +258,16 @@ class Device(BaseEntity):
 
     # Private methods
     def _init_data(self):
-        self.commands = Commands.from_data(
-            self.client, self._data.get('commands'), self)
+        self.commands = Commands.from_data(self.client, self._data.get("commands"), self)
 
-        self.settings = Settings.from_data(
-            self.client, self._data.get('settings'))
+        self.settings = Settings.from_data(self.client, self._data.get("settings"))
 
         # Status(client: smarter_client.SmarterClient, data.get('status'))
-        self.status = Status.from_data(
-            self.client, self._data.get('status'), self)
+        self.status = Status.from_data(self.client, self._data.get("status"), self)
 
     def _fetch(self) -> dict:
         return self.client.get_device(self.identifier)
+
 
 # </Device>
 
@@ -293,14 +284,14 @@ class LoginSession:
     expires_at: datetime.datetime = None
 
     def __init__(self, data: dict):
-        self.kind = data.get('kind')
-        self.local_id = data.get('localId')
-        self.email = data.get('email')
-        self.display_name = data.get('displayName')
-        self.id_token = data.get('idToken')
-        self.registered = data.get('registered')
-        self.refresh_token = data.get('refreshToken')
-        self.session_duration = int(data.get('expiresIn'))
+        self.kind = data.get("kind")
+        self.local_id = data.get("localId")
+        self.email = data.get("email")
+        self.display_name = data.get("displayName")
+        self.id_token = data.get("idToken")
+        self.registered = data.get("registered")
+        self.refresh_token = data.get("refreshToken")
+        self.session_duration = int(data.get("expiresIn"))
 
         self.expires_at = self._get_expiration_datetime()
 
@@ -321,13 +312,14 @@ class LoginSession:
         return (self.expires_at - datetime.datetime.now()).total_seconds()
 
     def update(self, data: dict):
-        self.id_token = data.get('idToken')
-        self.refresh_token = data.get('refreshToken')
-        self.local_id = data.get('userId')
+        self.id_token = data.get("idToken")
+        self.refresh_token = data.get("refreshToken")
+        self.local_id = data.get("userId")
         self.expires_at = self._get_expiration_datetime()
 
 
 # </LoginSession>
+
 
 class Network(BaseEntity):
     access_tokens_fcm: dict[str, str] = None
@@ -347,16 +339,16 @@ class Network(BaseEntity):
 
     def _init_data(self) -> None:
         try:
-            self.access_tokens_fcm = self._data.get('access_tokens_fcm')
-            self.associated_devices = [Device.from_id(self.client,
-                                                    key) for key in self._data.get('associated_devices')]
+            self.access_tokens_fcm = self._data.get("access_tokens_fcm")
+            self.associated_devices = [Device.from_id(self.client, key) for key in self._data.get("associated_devices")]
 
-            self.name = self._data.get('name')
-            self.owner = User.from_id(self.client, self._data.get('owner'))
+            self.name = self._data.get("name")
+            self.owner = User.from_id(self.client, self._data.get("owner"))
         except Exception as ex:
             _LOGGER.error(ex)
             _LOGGER.info(self._data)
             raise ex
+
 
 # </Network>
 
@@ -364,7 +356,7 @@ class Network(BaseEntity):
 class Settings(BaseEntity):
     def __init__(self, client: smarter_client.SmarterClient):
         super().__init__(client)
-        self.identifier = '/'
+        self.identifier = "/"
         self.network: Network = None
         self.network_ssid: str = None
 
@@ -372,8 +364,9 @@ class Settings(BaseEntity):
         return dict()
 
     def _init_data(self) -> None:
-        self.network = Network.from_id(self.client, self._data.get('network'))
-        self.network_ssid = self._data.get('network_ssid')
+        self.network = Network.from_id(self.client, self._data.get("network"))
+        self.network_ssid = self._data.get("network_ssid")
+
 
 # </Settings>
 
@@ -384,7 +377,7 @@ class Status(BaseEntity, dict):
     # Class methods
     @classmethod
     def from_data(cls, client: smarter_client.SmarterClient, data: dict, device: Device) -> Self:
-        self = super().from_data(client, data, f'{device.identifier}/status')
+        self = super().from_data(client, data, f"{device.identifier}/status")
         self.device = device
 
         return self
@@ -398,6 +391,7 @@ class Status(BaseEntity, dict):
 
     def _fetch(self) -> dict:
         self.client.get_status(self.device.identifier)
+
 
 # </Status>
 
@@ -416,17 +410,15 @@ class User(BaseEntity):
         super().__init__(client)
 
     def _init_data(self) -> None:
-        self.accepted: int = datetime.datetime.fromtimestamp(
-            self._data.get('accepted')/1000.0)
-        self.email: str = self._data.get('email')
-        self.first_name: str = self._data.get('first_name')
-        self.last_name: str = self._data.get('last_name')
-        self.location_accepted: int = self._data.get('locationAccepted')
-        self.networks_index: dict = self._data.get('networks_index')
-        self.temperature_unit: int = self._data.get('temperature_unit')
+        self.accepted: int = datetime.datetime.fromtimestamp(self._data.get("accepted") / 1000.0)
+        self.email: str = self._data.get("email")
+        self.first_name: str = self._data.get("first_name")
+        self.last_name: str = self._data.get("last_name")
+        self.location_accepted: int = self._data.get("locationAccepted")
+        self.networks_index: dict = self._data.get("networks_index")
+        self.temperature_unit: int = self._data.get("temperature_unit")
 
-        self.networks = {value: Network.from_id(self.client,
-                                                key) for key, value in self.networks_index.items()}
+        self.networks = {value: Network.from_id(self.client, key) for key, value in self.networks_index.items()}
 
     def _fetch(self) -> dict:
         return self.client.get_user(self.identifier)

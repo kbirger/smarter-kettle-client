@@ -1,10 +1,10 @@
-
 """The `version` module holds the version information for Smarter Kettle Client."""
+
 from __future__ import annotations as _annotations
 
-__all__ = 'VERSION', 'version_info'
+__all__ = "VERSION", "version_info"
 
-VERSION = '0.2.4'
+VERSION = "0.2.4"
 """The version of Smarter Kettle Client."""
 
 
@@ -13,7 +13,7 @@ def version_short() -> str:
 
     It returns '2.1' if version is '2.1.1'.
     """
-    return '.'.join(VERSION.split('.')[:2])
+    return ".".join(VERSION.split(".")[:2])
 
 
 def version_info() -> str:
@@ -23,9 +23,9 @@ def version_info() -> str:
     from pathlib import Path
 
     info = {
-        'version': VERSION,
-        'install path': Path(__file__).resolve().parent,
-        'python version': sys.version,
-        'platform': platform.platform(),
+        "version": VERSION,
+        "install path": Path(__file__).resolve().parent,
+        "python version": sys.version,
+        "platform": platform.platform(),
     }
-    return '\n'.join('{:>30} {}'.format(k + ':', str(v).replace('\n', ' ')) for k, v in info.items())
+    return "\n".join("{:>30} {}".format(k + ":", str(v).replace("\n", " ")) for k, v in info.items())

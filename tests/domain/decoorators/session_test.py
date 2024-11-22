@@ -18,7 +18,7 @@ class TestRefreshSession:
 
     def test_refresh_session_when_session_expires_in_less_than_30(self):
         class Test:
-            session = type('Session', (), {'expires_in': 29})
+            session = type("Session", (), {"expires_in": 29})
 
             def refresh(self):
                 self.session.expires_in = 31
@@ -32,7 +32,7 @@ class TestRefreshSession:
 
     def test_does_not_refresh_session_when_session_expires_in_more_than_30(self):
         class Test:
-            session = type('Session', (), {'expires_in': 31})
+            session = type("Session", (), {"expires_in": 31})
 
             refresh = Mock()
 

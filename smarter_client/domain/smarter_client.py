@@ -1,6 +1,7 @@
 """
 Module contains implementation of Smarter Firebase API
 """
+
 from __future__ import annotations
 
 import pyrebase
@@ -25,7 +26,7 @@ class SmarterClient:  # pragma: no cover
             "databaseURL": "https://smarter-live.firebaseio.com",
             "projectId": "smarter-live",
             "storageBucket": "smarter-live.appspot.com",
-            "messagingSenderId": "41919779740"
+            "messagingSenderId": "41919779740",
         }
         app = pyrebase.initialize_app(config)
         self.app = app
@@ -59,12 +60,12 @@ class SmarterClient:  # pragma: no cover
     @refreshsession
     def get_device(self, device_id: str):
         database = self.app.database()
-        return database.child('devices').child(device_id).get(self.token).val()
+        return database.child("devices").child(device_id).get(self.token).val()
 
     @refreshsession
     def get_status(self, device_id: str):
         database = self.app.database()
-        return database.child('devices').child(device_id).child('status').get(self.token).val()
+        return database.child("devices").child(device_id).child("status").get(self.token).val()
 
     def get_db(self):
         return self.app.database()
@@ -73,17 +74,11 @@ class SmarterClient:  # pragma: no cover
     def send_command(self, device_id: str, command: str, data: dict):
         database = self.app.database()
 
-        return database \
-            .child('devices') \
-            .child(device_id) \
-            .child('commands') \
-            .child(command) \
-            .push(data, self.token)
+        return database.child("devices").child(device_id).child("commands").child(command).push(data, self.token)
 
     # TODO fix leaky abstraction
     @refreshsession
     def watch_device_attribute(self, device_id: str, callback) -> pyrebase.pyrebase.Stream:
         database = self.app.database()
-        stream = database.child('devices').child(
-            device_id).stream(callback, self.token)
+        stream = database.child("devices").child(device_id).stream(callback, self.token)
         return stream

@@ -15,12 +15,12 @@ def pytest_sessionstart(session):
     Called after the Session object has been created and
     before performing collection and entering the run test loop.
     """
-    module = type(sys)('pyrebase')
+    module = type(sys)("pyrebase")
     module.pyrebase = type(sys)("pyrebase")
     module.pyrebase.Stream = Mock()
     # module.sum = fwlib_sum
-    sys.modules['pyrebase'] = module
-    sys.modules['pyrebase.pyrebase'] = module.pyrebase
+    sys.modules["pyrebase"] = module
+    sys.modules["pyrebase.pyrebase"] = module.pyrebase
 
 
 def pytest_sessionfinish(session, exitstatus):

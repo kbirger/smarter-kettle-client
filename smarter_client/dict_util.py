@@ -3,7 +3,7 @@ from copy import deepcopy
 
 
 def _tokenize_path(path: str):
-    return path.strip('/').split('/') if path != '/' else [None]
+    return path.strip("/").split("/") if path != "/" else [None]
 
 
 def _find_or_create_node(target: dict, path: str) -> tuple[dict, str]:
@@ -55,7 +55,7 @@ def delete_dict(target: dict, path: str, value: None = None) -> dict:
     parent, child = _find_or_create_node(new_dict, path)
 
     if child is None:
-        raise ValueError('Cannot delete root of dict')
+        raise ValueError("Cannot delete root of dict")
     del parent[child]
 
     return new_dict

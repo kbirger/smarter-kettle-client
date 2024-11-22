@@ -35,14 +35,14 @@ class BaseDevice(metaclass=ABCMeta):
 
     @property
     def model(self):
-        return self.device.status.get('device_model')
+        return self.device.status.get("device_model")
 
     @property
     def firmware_version(self):
-        return self.device.status.get('firmware_version')
+        return self.device.status.get("firmware_version")
 
     def _on_event(self, event):
-        if 'status' not in event.get('path', []):
+        if "status" not in event.get("path", []):
             return
 
         for cb in self._status_subscriptions:
@@ -62,16 +62,15 @@ class BaseDevice(metaclass=ABCMeta):
     def _ensure_watching(self):
         if not self.device.is_watching:
             self.device.watch(self._on_event)
-            refresh_after = self.device.client.session.expires_in * .95
-            self.log(f'session to be refreshed in {refresh_after} seconds. duration: {
-                     self.device.client.session.expires_in}, expiration time: {self.device.client.session.expires_at}')
+            refresh_after = self.device.client.session.expires_in * 0.95
+            self.log(f"session to be refreshed in {refresh_after} seconds. duration: {
+                     self.device.client.session.expires_in}, expiration time: {self.device.client.session.expires_at}")
 
-            self.refresh_timer = threading.Timer(
-                refresh_after, self.refresh_session)
+            self.refresh_timer = threading.Timer(refresh_after, self.refresh_session)
             self.refresh_timer.start()
 
     def refresh_session(self):
-        self.log('Refreshing session')
+        self.log("Refreshing session")
         self.device.unwatch()
         self.device.client.refresh()
         self._ensure_watching()

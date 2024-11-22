@@ -1,6 +1,7 @@
 """
 Module containing wrappers for specific devices
 """
+
 from smarter_client.domain import Device, Network
 from smarter_client.managed_devices.base import BaseDevice
 from smarter_client.managed_devices.coffee_v2 import SmarterCoffeeV2
@@ -13,11 +14,8 @@ def load_from_network(network: Network, user_id: str) -> list[Device]:
     """
     network.fetch()
     return (
-        wrapper for wrapper in
-        (
-            get_device_wrapper(device, user_id)
-            for device in network.associated_devices
-        )
+        wrapper
+        for wrapper in (get_device_wrapper(device, user_id) for device in network.associated_devices)
         if wrapper is not None
     )
 
@@ -28,13 +26,13 @@ def get_device_wrapper(device: Device, user_id: str):
     from the device properties
     """
     device.fetch()
-    model = device.status.get('device_model')
+    model = device.status.get("device_model")
     match model:
-        case 'SMKET01':
+        case "SMKET01":
             managed = SmarterKettleV3.from_device(device, user_id)
             managed.subscribe_status()
             return managed
-        case 'SMCOF01':
+        case "SMCOF01":
             managed = SmarterCoffeeV2.from_device(device, user_id)
         case _:
-            print(f'Unknown device model: {model}')
+            print(f"Unknown device model: {model}")
