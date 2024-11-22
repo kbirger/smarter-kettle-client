@@ -27,7 +27,7 @@ classifiers = [
 distribution = false
 
 [tool.pdm.scripts]
-lint = "pylint --rcfile .pylintrc smarter_client"
+lint = "ruff check"
 test = "pytest -v  --doctest-modules --junitxml=coverage/test-results.xml --cov --cov-report=xml --cov-report=html"
 version = "python -c 'import smarter_client.version; print(smarter_client.version.version_info())'"
 
