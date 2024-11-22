@@ -2,7 +2,7 @@ import itertools
 import json
 from pathlib import Path
 
-from smarter_client.domain.models import Command, Commands, Network, User
+from smarter_client.domain.models import Commands, Network, User
 from smarter_client.domain.smarter_client import SmarterClient
 
 username = None
@@ -23,6 +23,7 @@ with open("credentials") as cred:
 
 
 def load_from_network(client: SmarterClient, network: Network):
+    """Load devices from a network."""
     network.fetch()
     for device in network.associated_devices:
         device.fetch()
@@ -40,11 +41,8 @@ user.fetch()
 devices = list(itertools.chain.from_iterable(load_from_network(client, network) for network in user.networks.values()))
 
 
-def str_cmd(cmd: Command):
-    return cmd._data
-
-
 def str_cmds(commands: Commands):
+    """Serialize commands."""
     for command in commands.items():
         yield {"name": command[0], "data": command[1]._data}
 

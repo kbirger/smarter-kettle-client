@@ -1,6 +1,4 @@
-"""
-Module contains implementation of Smarter Firebase API
-"""
+"""Module contains implementation of Smarter Firebase API."""
 
 from __future__ import annotations
 
@@ -13,9 +11,7 @@ from .models import LoginSession
 
 
 class SmarterClient:  # pragma: no cover
-    """
-    A client for interacting with the Smarter API.
-    """
+    """A client for interacting with the Smarter API."""
 
     session: LoginSession
 
@@ -80,5 +76,4 @@ class SmarterClient:  # pragma: no cover
     @refreshsession
     def watch_device_attribute(self, device_id: str, callback) -> pyrebase.pyrebase.Stream:
         database = self.app.database()
-        stream = database.child("devices").child(device_id).stream(callback, self.token)
-        return stream
+        return database.child("devices").child(device_id).stream(callback, self.token)

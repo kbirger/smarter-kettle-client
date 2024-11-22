@@ -12,8 +12,7 @@ def pytest_configure(config):
 
 def pytest_sessionstart(session):
     """
-    Called after the Session object has been created and
-    before performing collection and entering the run test loop.
+    Called after the Session object has been created and before performing collection and entering the run test loop.
     """
     module = type(sys)("pyrebase")
     module.pyrebase = type(sys)("pyrebase")
@@ -31,6 +30,4 @@ def pytest_sessionfinish(session, exitstatus):
 
 
 def pytest_unconfigure(config):
-    """
-    called before test process is exited.
-    """
+    """Called before test process is exited."""

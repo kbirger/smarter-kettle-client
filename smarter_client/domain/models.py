@@ -228,7 +228,7 @@ class Device(BaseEntity):
     def watch(self, callback: Callable[[dict], None]):
         if self._stream is not None:
             raise RuntimeError(
-                "Already watching device. Call unwatch() first. Support for multiple callbacks may be implemented in a later version"
+                "Already watching device. Call unwatch() first. Support for multiple callbacks may be implemented in a later version"  # noqa: E501
             )
 
         def on_data(event):
@@ -299,16 +299,12 @@ class LoginSession:
         return datetime.datetime.now() + datetime.timedelta(0, self.session_duration)
 
     def is_expired(self) -> bool:
-        """
-        Returns True if the session has expired.
-        """
+        """Returns True if the session has expired."""
         return self.expires_at <= datetime.datetime.now()
 
     @property
     def expires_in(self) -> int:
-        """
-        Returns the number of seconds until the session expires.
-        """
+        """Returns the number of seconds until the session expires."""
         return (self.expires_at - datetime.datetime.now()).total_seconds()
 
     def update(self, data: dict):
