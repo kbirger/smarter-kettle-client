@@ -1,24 +1,24 @@
-from __future__ import annotations
+from __future__ import annotations  # noqa: I001
 
-import datetime
-import logging
-from abc import ABCMeta, abstractmethod
+from abc import ABCMeta
+from abc import abstractmethod
+from typing import Any, Self
 from collections.abc import Callable
 from pprint import pprint
-from typing import Any, Self
-
 from pyrebase.pyrebase import Stream
 
+import datetime
 from smarter_client.dict_util import delete_dict, patch_dict, put_dict
-
 from . import smarter_client
+import logging
+
 
 _LOGGER = logging.getLogger(__name__)
 
 
 class BaseEntity(metaclass=ABCMeta):
-    identifier: str = None
-    _data: dict = None
+    identifier: str
+    _data: dict
     client: smarter_client.SmarterClient
     is_stub: bool = True
 
@@ -33,7 +33,7 @@ class BaseEntity(metaclass=ABCMeta):
         return self
 
     @classmethod
-    def from_data(cls, client: smarter_client.SmarterClient, data: dict, identifier: str = None) -> Self:
+    def from_data(cls, client: smarter_client.SmarterClient, data: dict, identifier: str | None = None) -> Self:
         self = cls(client)
         self._data = data or {}
         self.identifier = identifier
@@ -139,12 +139,12 @@ class Commands(BaseEntity, dict[str, "Command"]):
 
 
 class CommandInstance(BaseEntity):
-    command: Command = None
-    device: Device = None
-    value: dict[str, Any] = None
-    state: str = None
-    response: dict[str, Any] = None
-    user_id: str = None
+    command: Command
+    device: Device
+    value: dict[str, Any]
+    state: str
+    response: dict[str, Any]
+    user_id: str
 
     # Class Methods
     def __init__(self, client: smarter_client.SmarterClient):
@@ -177,10 +177,10 @@ class CommandInstance(BaseEntity):
 
 
 class Command(BaseEntity):
-    name: str = None
-    device: Device = None
+    name: str
+    device: Device
     instances: dict[str, CommandInstance] = {}
-    example: dict = None
+    example: dict
     # Class methods
 
     @classmethod
@@ -216,10 +216,10 @@ class Command(BaseEntity):
 
 
 class Device(BaseEntity):
-    commands: Commands = None
-    settings: Settings = None
-    status: Status = None
-    _stream: Stream = None
+    commands: Commands
+    settings: Settings | None
+    status: Status | None
+    _stream: Stream | None = None
 
     def __init__(self, client: smarter_client.SmarterClient):
         super().__init__(client)
@@ -273,17 +273,17 @@ class Device(BaseEntity):
 
 
 class LoginSession:
-    kind: str = None
-    local_id: str = None
-    email: str = None
-    display_name: str = None
-    id_token: str = None
-    registered: bool = None
-    refresh_token: str = None
-    session_duration: int = None
-    expires_at: datetime.datetime = None
+    kind: str | None
+    local_id: str
+    email: str
+    display_name: str
+    id_token: str
+    registered: bool
+    refresh_token: str
+    session_duration: int
+    expires_at: datetime.datetime
 
-    def __init__(self, data: dict):
+    def __init__(self, data: dict[str, str]):
         self.kind = data.get("kind")
         self.local_id = data.get("localId")
         self.email = data.get("email")
@@ -303,7 +303,7 @@ class LoginSession:
         return self.expires_at <= datetime.datetime.now()
 
     @property
-    def expires_in(self) -> int:
+    def expires_in(self) -> float:
         """Returns the number of seconds until the session expires."""
         return (self.expires_at - datetime.datetime.now()).total_seconds()
 
@@ -318,10 +318,10 @@ class LoginSession:
 
 
 class Network(BaseEntity):
-    access_tokens_fcm: dict[str, str] = None
-    associated_devices: list[Device] = None
-    name: str = None
-    owner: User = None
+    access_tokens_fcm: dict[str, str]
+    associated_devices: list[Device]
+    name: str
+    owner: User
 
     def __init__(self, client):
         super().__init__(client)
@@ -353,8 +353,8 @@ class Settings(BaseEntity):
     def __init__(self, client: smarter_client.SmarterClient):
         super().__init__(client)
         self.identifier = "/"
-        self.network: Network = None
-        self.network_ssid: str = None
+        self.network: Network
+        self.network_ssid: str
 
     def _fetch(self) -> dict:
         return dict()
@@ -393,13 +393,13 @@ class Status(BaseEntity, dict):
 
 
 class User(BaseEntity):
-    email: str = None
-    accepted: int = None
-    first_name: str = None
-    last_name: str = None
-    location_accepted: int = None
-    networks_index: dict[str, str] = None
-    temperature_unit: int = None
+    email: str
+    accepted: int
+    first_name: str
+    last_name: str
+    location_accepted: int
+    networks_index: dict[str, str]
+    temperature_unit: int
     networks: dict[str, Network] = dict()
 
     def __init__(self, client):
