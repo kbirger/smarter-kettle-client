@@ -22,6 +22,7 @@
     "*.yaml": "home-assistant"
   },
   "files.exclude": {
-    "**/pdm.lock": true
+    "**/pdm.lock": true,
+    ".gitignore": true,
   },
 }
