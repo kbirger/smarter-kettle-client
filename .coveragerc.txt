@@ -1,0 +1,2 @@
+[report]
+omit = smarter_client/managed_devices
