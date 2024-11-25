@@ -5,11 +5,12 @@ Module containing wrappers for specific devices
 from collections.abc import Generator
 
 from smarter_client.domain import Device, Network
+from smarter_client.managed_devices.base import BaseDevice
 from smarter_client.managed_devices.coffee_v2 import SmarterCoffeeV2
 from smarter_client.managed_devices.kettle_v3 import SmarterKettleV3
 
 
-def load_from_network(network: Network, user_id: str) -> Generator[Device]:
+def load_from_network(network: Network, user_id: str) -> Generator[BaseDevice]:
     """
     Get devices from a given network
     """
@@ -21,13 +22,14 @@ def load_from_network(network: Network, user_id: str) -> Generator[Device]:
     )
 
 
-def get_device_wrapper(device: Device, user_id: str):
+def get_device_wrapper(device: Device, user_id: str) -> BaseDevice:
     """
     Get a device wrapper for a specific user by inferring the correct type
     from the device properties
     """
     device.fetch()
     model = device.status.get("device_model")
+    managed: BaseDevice
     match model:
         case "SMKET01":
             managed = SmarterKettleV3.from_device(device, user_id)
