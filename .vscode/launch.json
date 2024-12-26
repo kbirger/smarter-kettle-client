@@ -11,6 +11,17 @@
       "program": "${file}",
       "cwd": "${workspaceFolder}",
       "console": "integratedTerminal",
+    },
+    {
+      "name": "Python Debugger: device_debug",
+      "type": "debugpy",
+      "request": "launch",
+      "module": "device_debug",
+      "cwd": "${workspaceFolder}",
+      "env": {
+        "PYTHONPATH": "${workspaceFolder}"
+      },
+      "console": "integratedTerminal",
     }
   ]
 }

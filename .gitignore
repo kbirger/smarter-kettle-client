@@ -167,3 +167,6 @@ test.py
 .pdm-python
 
 temp
+
+report-*.json
+credentials
