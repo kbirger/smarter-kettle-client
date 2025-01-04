@@ -6,7 +6,7 @@ from json import dumps
 from pathlib import Path
 
 import inquirer
-from pynput.keyboard import Listener
+import keyboard
 from smarter_client.domain import SmarterClient
 from smarter_client.domain.models import Device, User
 
@@ -80,7 +80,6 @@ class DeviceListener:
 
         def on_status_change(event):
             if state := event["data"].get("state"):
-                # state = event["data"]["state"]
                 if state in ("RCV", "ACK", "FIN"):
                     return
             self.log_file.writelines([dumps(event)])
@@ -104,8 +103,7 @@ def listen_for_key(device_listener: DeviceListener):
         return True
 
     # Collect all event until released
-    with Listener(on_press=on_key_press) as listener:
-        listener.join()
+    keyboard.on_press(on_key_press)
 
 
 async def main():
@@ -113,16 +111,10 @@ async def main():
     user = sign_in(username, password)
     device = prompt_for_device(user)
     listener = DeviceListener(device)
-    key_task = None
 
+    listen_for_key(listener)
+    listener.start()
     print("Listening for events. Press any key to terminate")
-
-    key_task = asyncio.to_thread(lambda: listen_for_key(listener))
-
-    loop = asyncio.get_running_loop()
-    await loop.run_in_executor(None, listener.start)
-    await key_task
-    print("Finished.")
 
 
 asyncio.run(main())
