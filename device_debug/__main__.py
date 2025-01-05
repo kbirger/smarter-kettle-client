@@ -98,7 +98,10 @@ if __name__ == "__main__":
         def stop(*args):
             print("[main] Stopping worker")
             close_event.set()
-            worker.join()
+            try:
+                worker.join()
+            except AssertionError:
+                pass
             return True
 
         signal.signal(signal.SIGINT, stop)
