@@ -16,7 +16,6 @@
       "name": "Python Debugger: device_debug",
       "type": "debugpy",
       "request": "launch",
-      "python": "C:\\Users\\kir\\git\\smarter-kettle-client\\.venv\\Scripts\\python.exe",
       "module": "device_debug",
       "cwd": "${workspaceFolder}",
       "env": {

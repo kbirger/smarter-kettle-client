@@ -6,7 +6,6 @@ import time
 from collections.abc import Callable
 from io import TextIOWrapper
 from json import dumps
-from multiprocessing.connection import PipeConnection
 from pathlib import Path
 from typing import Any
 
@@ -75,7 +74,7 @@ class DeviceListener:
 
 def main(
     close_event: multiprocessing.synchronize.Event,
-    output_pipe: PipeConnection,
+    output_pipe,
     username: str,
     password: str,
     device_id: str,
@@ -90,7 +89,7 @@ def main(
 
 async def do_work(
     close_event: multiprocessing.synchronize.Event,
-    output_pipe: PipeConnection,
+    output_pipe,
     username: str,
     password: str,
     device_id: str,
