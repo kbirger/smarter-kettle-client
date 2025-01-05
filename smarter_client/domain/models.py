@@ -244,7 +244,9 @@ class Device(BaseEntity):
             except Exception as e:
                 print(f"Error closing stream: {e}")
                 # TODO: log
+                return e
             self._stream = None
+        return None
 
     @property
     def is_watching(self):

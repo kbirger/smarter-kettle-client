@@ -1,33 +1,45 @@
-import asyncio
-import sys
-import time
-from io import TextIOWrapper
-from json import dumps
+"""
+This script listens to events for a particular device and logs them to a file.
+
+multiprocessing is used because the underlying library pyrebase uses SocketIO, which uses winsock on Windows,
+which prevents normal graceful shutdown via the `signal` package.
+
+Instead, this main script starts a separate process and communicates via pipes and an event to signal the worker to stop
+when the main process receives a CTRL+C signal.
+
+
+Usage:
+    - Create a file named `credentials` in the root of the repository with the email and password on separate lines.
+    - From the root of the repository:
+
+      pip install -r device_debug/requirements.txt
+      python -m device_debug
+    - Follow the prompts to select a network and device to monitor.
+    - Press CTRL+C to stop monitoring.
+    - Inspect the generated report-*.log file
+
+"""
+
+import signal
+from multiprocessing import Manager, Pipe, Process
 from pathlib import Path
 
+import device_debug.worker
 import inquirer
-import keyboard
 from smarter_client.domain import SmarterClient
-from smarter_client.domain.models import Device, User
+from smarter_client.domain.models import User
 
 username = None
 password = None
 
 
-def get_output_file():
-    timestamp = int(time.time())
-    report_path = Path(f"report-{timestamp}.json").resolve()
-
-    return report_path
-
-
 def get_credentials():
     credentialsPath = Path("credentials").resolve()
     if not credentialsPath.exists():
-        print(f"Credentials file not found at {credentialsPath}")
+        print(f"[main] Credentials file not found at {credentialsPath}")
         exit(1)
 
-    print(f"Reading credentials file: {credentialsPath}")
+    print(f"[main] Reading credentials file: {credentialsPath}")
     with open("credentials") as cred:
         try:
             (username, password) = cred.read().splitlines()
@@ -66,55 +78,40 @@ def prompt_for_device(user):
     return device
 
 
-class DeviceListener:
-    device: Device
-    log_file: TextIOWrapper | None = None
-    is_listening: bool = False
-
-    def __init__(self, device: Device):
-        self.device = device
-
-    def start(self):
-        self.is_listening = True
-        self.log_file = open(get_output_file(), "w")
-
-        def on_status_change(event):
-            if state := event["data"].get("state"):
-                if state in ("RCV", "ACK", "FIN"):
-                    return
-            self.log_file.writelines([dumps(event)])
-            print(event)
-
-        self.device.watch(on_status_change)
-
-    def stop(self):
-        print("Stopping device listener")
-        self.is_listening = False
-        if self.log_file:
-            self.log_file.close()
-
-        self.device.unwatch()
-        sys.exit(0)
-
-
-def listen_for_key(device_listener: DeviceListener):
-    def on_key_press(key):
-        device_listener.stop()
-        return True
-
-    # Collect all event until released
-    keyboard.on_press(on_key_press)
-
-
-async def main():
+if __name__ == "__main__":
     username, password = get_credentials()
     user = sign_in(username, password)
     device = prompt_for_device(user)
-    listener = DeviceListener(device)
 
-    listen_for_key(listener)
-    listener.start()
-    print("Listening for events. Press any key to terminate")
+    with Manager() as manager:
+        print("Press CTRL+C at any time to stop monitoring.")
 
+        # Event to signal the worker to stop
+        close_event = manager.Event()
 
-asyncio.run(main())
+        # Read and write pipes to communicate to other process
+        r, w = Pipe()
+
+        worker = Process(target=device_debug.worker.main, args=(close_event, w, username, password, device.identifier))
+
+        # Callback to receive CTRL+C signal
+        def stop(*args):
+            print("[main] Stopping worker")
+            close_event.set()
+            worker.join()
+            return True
+
+        signal.signal(signal.SIGINT, stop)
+
+        # Start the worker and continue
+        worker.start()
+
+        # Print all messages received from the worker
+        while True:
+            msg = r.recv()
+            if msg:
+                print(msg)
+            else:
+                break
+        print("[main] Gracefully shut down")
+        exit(0)
