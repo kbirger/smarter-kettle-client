@@ -49,12 +49,14 @@ class DeviceListener:
         self.log_file = open(get_output_file(), "w")
 
         def on_status_change(event):
-            if state := event["data"].get("state"):
-                if state in ("RCV", "ACK", "FIN"):
+            data = event["data"]
+
+            if isinstance(data, dict):
+                if data.get("state") in ("RCV", "ACK", "FIN"):
                     return
+            self.cb(event)
             self.log_file.writelines([dumps(event)])
             self.log_file.flush()
-            self.cb(event)
             # print(event)
 
         self.device.watch(on_status_change)
