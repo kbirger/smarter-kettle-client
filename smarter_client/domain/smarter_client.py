@@ -30,7 +30,6 @@ class SmarterClient:  # pragma: no cover
 
     def sign_in(self, email, password) -> LoginSession:
         auth = self.app.auth()
-
         user = auth.sign_in_with_email_and_password(email, password)
         self.token = user.get("idToken")
         self.session = LoginSession(user)

@@ -5,7 +5,7 @@
 groups = ["default", "build", "testing"]
 strategy = ["inherit_metadata"]
 lock_version = "4.5.0"
-content_hash = "sha256:872bbd5b7ee2ecc76b8b18b2c3dcee49b7da167fa7a950674e05a8d910700fc6"
+content_hash = "sha256:b693b25562119f90023b250de421a5396eb3a643980beff5bd4fdc24436e762a"
 
 [[metadata.targets]]
 requires_python = ">=3.12.5"
@@ -634,7 +634,7 @@ files = [
 
 [[package]]
 name = "pyrebase-air"
-version = "4.10.0"
+version = "4.11.0"
 summary = "A simple python wrapper for the Firebase API with current deps"
 groups = ["default"]
 marker = "python_full_version >= \"3.12.5\""
@@ -648,8 +648,8 @@ dependencies = [
     "urllib3>=2.0",
 ]
 files = [
-    {file = "pyrebase_air-4.10.0-py3-none-any.whl", hash = "sha256:f0c24c3ac4e7510a6b0cb40c14e5df31369fa3fcd20d43aadb12536fd04c8521"},
-    {file = "pyrebase_air-4.10.0.tar.gz", hash = "sha256:e2df7e28644d966b509ce22de92162e01e146017c114d35b5e35bcfa1d4311f8"},
+    {file = "pyrebase_air-4.11.0-py3-none-any.whl", hash = "sha256:5e3ef3e3426aaeccc7c1d84ca1866da6327ad6c96827b08b7b65ae2754604e22"},
+    {file = "pyrebase_air-4.11.0.tar.gz", hash = "sha256:96abbcb8b46ec07bd1f4e36ddfc5fa0d01c12fa6c28ae2d327a9eb0c07ceb815"},
 ]
 
 [[package]]
